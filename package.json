@@ -15,6 +15,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.0.3",
     "@tauri-apps/plugin-autostart": "~2",
     "@vicons/fluent": "^0.12.0",
     "@vueuse/core": "^11.1.0",
@@ -40,6 +41,7 @@
     "jsdom": "^25.0.1",
     "npm-run-all2": "^6.2.3",
     "prettier": "^3.3.3",
+    "sass": "^1.80.3",
     "typescript": "~5.5.4",
     "vite": "^5.4.8",
     "vite-plugin-vue-devtools": "^7.4.6",

@@ -2,6 +2,9 @@ use tauri_plugin_autostart::MacosLauncher;
 
 mod tray;
 mod preview;
+
+#[path = "./command.rs"]
+mod command;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -23,6 +26,7 @@ pub fn run() {
             preview::init_preview_file(app_handle);
             Ok(())
         })
+        .invoke_handler(tauri::generate_handler![command::preview_file])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
