@@ -5,7 +5,7 @@
   "identifier": "dev.jikun.quicklook",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:6666",
+    "devUrl": "http://localhost:6688",
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build"
   },
