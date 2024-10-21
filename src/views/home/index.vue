@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, shallowRef, type ComponentInstance } from 'vue'
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
-import { extname } from '@tauri-apps/api/path';
 import { getWindow  } from "@/utils/index"
 import Header from './components/header.vue'
 import Footer from './components/footer.vue'
@@ -37,14 +36,17 @@ const init = async () => {
         const localePath = convertFileSrc(file.path);
         console.log(localePath)
 
-
-        const ext = await extname(payload);
-        if (isImage(ext)) {
-            componentName.value = ImageSupport
-        }else if (isVideo(ext)){
-            componentName.value = VideoSupport
-        }else{
-            componentName.value = NotSupport
+        let fileType = file.file_type;
+        switch (fileType) {
+            case "Image":
+                componentName.value = ImageSupport;
+                break;
+            case "Video":
+                componentName.value = ImageSupport;
+                break;
+            default:
+                componentName.value = NotSupport
+                break;
         }
         path.value = localePath;
     })
