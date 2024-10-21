@@ -9,16 +9,7 @@ import ImageSupport from './image.vue'
 import VideoSupport from './video.vue'
 
 const path = ref<string>('')
-let componentName = shallowRef<ComponentInstance<any>>(NotSupport)
-
-const imgExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
-const isImage = (path: string) => {
-    return imgExtensions.some(ext => path.endsWith(ext))
-}
-const videoExtensions = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv']
-const isVideo = (path: string) => {
-    return videoExtensions.some(ext => path.endsWith(ext))
-}
+const componentName = shallowRef<ComponentInstance<any>>(NotSupport)
 
 interface File {
     path: string
@@ -36,13 +27,13 @@ const init = async () => {
         const localePath = convertFileSrc(file.path);
         console.log(localePath)
 
-        let fileType = file.file_type;
+        const fileType = file.file_type;
         switch (fileType) {
             case "Image":
                 componentName.value = ImageSupport;
                 break;
             case "Video":
-                componentName.value = ImageSupport;
+                componentName.value = VideoSupport;
                 break;
             default:
                 componentName.value = NotSupport
