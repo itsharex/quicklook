@@ -7,6 +7,7 @@ import Footer from './components/footer.vue'
 import NotSupport from './not-support.vue'
 import ImageSupport from './image.vue'
 import VideoSupport from './video.vue'
+import FontSupport from './font.vue'
 
 const path = ref<string>('')
 const componentName = shallowRef<ComponentInstance<any>>(NotSupport)
@@ -34,6 +35,9 @@ const init = async () => {
                 break;
             case "Video":
                 componentName.value = VideoSupport;
+                break;
+            case "Font":
+                componentName.value = FontSupport;
                 break;
             default:
                 componentName.value = NotSupport

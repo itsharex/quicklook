@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import Min from '@/components/icons/min.vue'
-import Max from '@/components/icons/max.vue'
-import { Dismiss20Regular } from "@vicons/fluent"
+import { Dismiss20Regular, Maximize20Regular } from "@vicons/fluent"
 
 import { getCurrentWindow } from '@tauri-apps/api/window'
 
@@ -43,10 +41,11 @@ const handleMax = () => {
             </div>
         </div>
         <div class="layout-header-operate">
-            <div class="layout-header-operate-item" @click="handleMin"><Min /></div>
-            <div class="layout-header-operate-item" @click="handleMax"><Max /></div>
+            <div class="layout-header-operate-item" @click="handleMax">
+                <n-icon><Maximize20Regular /></n-icon>
+            </div>
             <div class="layout-header-operate-item" @click="handleClose">
-                <Dismiss20Regular />
+                <n-icon><Dismiss20Regular /></n-icon>
             </div>
         </div>
     </div>

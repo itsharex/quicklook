@@ -20,6 +20,8 @@ use windows::{
         },
     },
 };
+use windows::Win32::System::SystemServices::{SFGAO_FILESYSTEM, SFGAO_FLAGS};
+use windows::Win32::UI::Shell::{SIGDN_DESKTOPABSOLUTEEDITING, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_NORMALDISPLAY, SIGDN_URL};
 
 #[path = "./helper.rs"]
 mod helper;
@@ -104,9 +106,23 @@ impl Selected {
                 let count = shell_items.GetCount().unwrap_or_default();
                 for i in 0..count {
                     let shell_item = shell_items.GetItemAt(i).unwrap();
-                    let display_name = shell_item.GetDisplayName(SIGDN_FILESYSPATH).unwrap();
-                    target_path = display_name.to_string().unwrap();
-                    break;
+                    
+                    // 如果不是文件对象则继续循环
+                    if let Ok(attrs) = shell_item.GetAttributes(SFGAO_FILESYSTEM) {
+                        println!("attrs: {:?}", attrs);
+                        if attrs.0 == 0 {
+                            continue
+                        }
+                    }
+                    
+                    if let Ok(display_name) = shell_item.GetDisplayName(SIGDN_FILESYSPATH) {
+                        target_path = display_name.to_string().unwrap();
+                        break;
+                    }
+                    if let Ok(display_name) = shell_item.GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING) {
+                        target_path = display_name.to_string().unwrap();
+                        break;
+                    }
                 }
             }
 
