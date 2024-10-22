@@ -2,44 +2,30 @@
 
 windows 平台的文件预览工具
 
-## Recommended IDE Setup
+## 如何运行项目
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+### 前置依赖
 
-## Type Support for `.vue` Imports in TS
+- Rust [官方网站](https://www.rust-lang.org/tools/install)
+- Tauri [官方网站](https://tauri.app/start/prerequisites/)
+- NodeJS [官方网站](https://nodejs.org/)
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+### 拉取项目代码
 
-## Customize configuration
+```bash
+git clone https://github.com/GuoJikun/quicklook.git 
+```
+### 运行项目
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+> 推荐使用 pnpm
 
-## Project Setup
-
-```sh
-pnpm install
+```bash
+pnpm i #安装项目依赖
+pnpm tauri dev 运行项目
 ```
 
-### Compile and Hot-Reload for Development
+### 打包
 
-```sh
-pnpm tauri dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
+```bash
 pnpm tauri build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-pnpm test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
 ```
