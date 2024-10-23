@@ -13,8 +13,8 @@ const props = withDefaults(defineProps<Props>(),{
 
 <template>
 <div class="image-support">
-    <div>
-        <img :src="props.src" alt="">
+    <div class="image-support-inner">
+        <img :src="props.src" alt="image" crossorigin="anonymous">
     </div>
 </div>
 </template>
@@ -27,6 +27,10 @@ const props = withDefaults(defineProps<Props>(),{
     justify-content: center;
     align-items: center;
     align-content: center;
+    &-inner {
+        max-width: 100%;
+        max-height: 100%;
+    }
     & img {
         max-width: 100%;
         max-height: 100%;

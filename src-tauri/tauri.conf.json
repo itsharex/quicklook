@@ -25,10 +25,7 @@
     ],
     "security": {
       "csp": {
-        "img-src": [
-          "self",
-          "asset"
-        ]
+        "img-src": "'self' asset: http://asset.localhost blob: data:"
       },
       "assetProtocol": {
         "enable": true,
@@ -50,8 +47,12 @@
       "icons/icon.ico"
     ],
     "windows": {
+      "digestAlgorithm": "sha256" ,
       "webviewInstallMode": {
         "type": "embedBootstrapper"
+      },
+      "wix": {
+        "language": "zh-CN"
       }
     }
   }

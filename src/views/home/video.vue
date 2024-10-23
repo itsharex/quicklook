@@ -17,11 +17,11 @@ interface Props {
 const props = withDefaults(defineProps<Props>(),{
     src: ""
 })
-let player = null;
+let player: Player | null = null;
 onMounted(() => {
-    if (player){
+    if (player !== null){
         player.switchURL(props.src)
-    }else {
+    } else {
         player = new Player({
             id: 'videos',
             url: props.src,
@@ -29,7 +29,6 @@ onMounted(() => {
             width: '100%',
         })
     }
-
 })
 </script>
 
