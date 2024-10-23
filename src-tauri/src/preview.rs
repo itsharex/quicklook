@@ -10,18 +10,19 @@ use windows::{
                 CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch,
                 IServiceProvider, COINIT_MULTITHREADED, CLSCTX_SERVER, COINIT_APARTMENTTHREADED
             },
+            SystemServices::SFGAO_FILESYSTEM
         },
         UI::{
             Shell::{
-                IShellWindows, IWebBrowser2, ShellWindows, IShellBrowser, IShellItemArray, SIGDN_FILESYSPATH, SVGIO_SELECTION, SWFO_NEEDDISPATCH
+                IShellWindows, IWebBrowser2, ShellWindows, IShellBrowser, IShellItemArray, SIGDN_FILESYSPATH, SVGIO_SELECTION, SWFO_NEEDDISPATCH,
+                 SIGDN_DESKTOPABSOLUTEPARSING
             },
             WindowsAndMessaging,
             Input::KeyboardAndMouse
         },
     },
 };
-use windows::Win32::System::SystemServices::{SFGAO_FILESYSTEM, SFGAO_FLAGS};
-use windows::Win32::UI::Shell::{SIGDN_DESKTOPABSOLUTEEDITING, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_NORMALDISPLAY, SIGDN_URL};
+
 
 #[path = "./helper.rs"]
 mod helper;
