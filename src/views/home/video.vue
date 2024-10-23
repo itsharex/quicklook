@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import { onMounted } from "vue"
+import Player, { I18N } from 'xgplayer'
+import 'xgplayer/dist/index.min.css'
+import ZH from 'xgplayer/es/lang/zh-cn'
+
+// 启用中文
+I18N.use(ZH)
+
 defineOptions({
     name: "VideoSupport",
 })
@@ -9,12 +17,27 @@ interface Props {
 const props = withDefaults(defineProps<Props>(),{
     src: ""
 })
+let player = null;
+onMounted(() => {
+    if (player){
+        player.switchURL(props.src)
+    }else {
+        player = new Player({
+            id: 'videos',
+            url: props.src,
+            height: '100%',
+            width: '100%',
+        })
+    }
+
+})
 </script>
 
 <template>
     <div class="video-support">
-        <div>
-            <video :src="props.src" controls></video>
+        <div class="video-support-inner">
+            <div id="videos"></div>
+<!--            <video :src="props.src" controls></video>-->
         </div>
     </div>
 </template>
@@ -27,9 +50,9 @@ const props = withDefaults(defineProps<Props>(),{
     justify-content: center;
     align-items: center;
     align-content: center;
-    & video {
-        max-width: 100%;
-        max-height: 100%;
+    &-inner {
+        width: 100%;
+        height: 100%;
     }
 }
 </style>
