@@ -1,4 +1,4 @@
-use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 
 mod tray;
 mod preview;
@@ -20,10 +20,15 @@ pub fn run() {
                         .build(),
                 )?;
             }
+            // 自动启动
+            let autostart_manager = app.autolaunch();
+            let _ = autostart_manager.enable();
             // 创建托盘
             tray::create_tray(app)?;
+            // 初始化预览文件
             let app_handle = app.handle().clone();
             preview::init_preview_file(app_handle);
+            
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![command::preview_file])
