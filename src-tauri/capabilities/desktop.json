@@ -5,6 +5,7 @@
   ],
   "permissions": [
     "autostart:default",
-    "core:default"
+    "core:default",
+    "fs:default"
   ]
 }

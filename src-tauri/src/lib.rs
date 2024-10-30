@@ -1,13 +1,14 @@
 use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 
-mod tray;
 mod preview;
+mod tray;
 
 #[path = "./command.rs"]
 mod command;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             Some(vec![]),
@@ -28,7 +29,7 @@ pub fn run() {
             // 初始化预览文件
             let app_handle = app.handle().clone();
             preview::init_preview_file(app_handle);
-            
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![command::preview_file])

@@ -23,6 +23,10 @@
     "core:window:allow-set-always-on-top",
     "core:window:allow-set-resizable",
     "core:event:allow-listen",
-    "core:path:allow-extname"
+    "core:path:allow-extname",
+    {
+      "identifier": "fs:allow-lstat",
+      "allow": [{ "path": "**" }]
+    }
   ]
 }
