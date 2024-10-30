@@ -15,7 +15,7 @@ use windows::{
         UI::{
             Input::KeyboardAndMouse,
             Shell::{
-                IShellBrowser, IShellItemArray, IShellWindows, IWebBrowser2, ShellWindows,
+                IShellBrowser, IShellItemArray, IShellWindows, ShellWindows,
                 SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SVGIO_SELECTION,
                 SWFO_NEEDDISPATCH,
             },
@@ -46,7 +46,7 @@ impl Selected {
         if let Some(focused_type) = Self::get_focused_type() {
             return match focused_type.as_str() {
                 "explorer" => unsafe { Self::get_select_file_from_explorer().ok() },
-                "desktop" => unsafe { Self::get_select_file_from_desktop().ok() },
+                "desktop" =>  unsafe { Self::get_select_file_from_desktop().ok() },
                 _ => None,
             };
         }
@@ -147,54 +147,60 @@ impl Selected {
     }
 
     unsafe fn get_select_file_from_desktop() -> Result<String, WError> {
-        // 初始化 COM 库
-        CoInitializeEx(None, COINIT_MULTITHREADED).ok()?;
-        let mut target_path = String::new();
-        let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
-        let shell_windows: IShellWindows = CoCreateInstance(&ShellWindows, None, CLSCTX_SERVER)?;
+        let (tx, rx) = mpsc::channel();
+        
+        // 在新的线程中执行 COM 操作
+        thread::spawn(move || {
+            // 初始化 COM 库
+            let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+            let mut target_path = String::new();
+            let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
+            let shell_windows: IShellWindows = CoCreateInstance(&ShellWindows, None, CLSCTX_SERVER).unwrap();
 
-        let pvar_loc: VARIANT = windows::Win32::System::Variant::VariantInit();
+            let pvar_loc: VARIANT = windows::Win32::System::Variant::VariantInit();
 
-        // 获取活动窗口
-        let mut phwnd: i32 = 0;
-        let dispatch = shell_windows.FindWindowSW(
-            &pvar_loc,
-            &pvar_loc,
-            windows::Win32::UI::Shell::SWC_DESKTOP,
-            &mut phwnd,
-            SWFO_NEEDDISPATCH,
-        )?;
+            // 获取活动窗口
+            let mut phwnd: i32 = 0;
 
-        let web_browser = dispatch.cast::<IWebBrowser2>()?;
-        let mut service_provider: Option<IServiceProvider> = None;
-        dispatch
-            .query(
-                &IServiceProvider::IID,
-                &mut service_provider as *mut _ as *mut _,
-            )
-            .ok()?;
-        if service_provider.is_none() {
-            return Ok(target_path);
-        }
-        let shell_browser = service_provider
-            .unwrap()
-            .QueryService::<IShellBrowser>(&IShellBrowser::IID)?;
+            let dispatch = shell_windows.FindWindowSW(
+                &pvar_loc,
+                &pvar_loc,
+                windows::Win32::UI::Shell::SWC_DESKTOP,
+                &mut phwnd,
+                SWFO_NEEDDISPATCH,
+            ).unwrap();
+            let mut service_provider: Option<IServiceProvider> = None;
+            dispatch
+                .query(
+                    &IServiceProvider::IID,
+                    &mut service_provider as *mut _ as *mut _,
+                )
+                .ok().unwrap();
 
-        let phwnd = web_browser.HWND()?;
-        if hwnd_gfw.0 as isize != phwnd.0 {
-            return Ok(target_path);
-        }
-        let shell_view = shell_browser.QueryActiveShellView()?;
-        let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION)?;
+            let shell_browser = service_provider
+                .unwrap()
+                .QueryService::<IShellBrowser>(&IShellBrowser::IID).unwrap();
 
-        let count = shell_items.GetCount().unwrap_or_default();
-        for i in 0..count {
-            let shell_item = shell_items.GetItemAt(i)?;
-            let display_name = shell_item.GetDisplayName(SIGDN_FILESYSPATH)?;
-            target_path = display_name.to_string()?;
-            break;
-        }
+            let phwnd = shell_browser.GetWindow().unwrap();
 
+            if hwnd_gfw.0 != phwnd.0 {
+                CoUninitialize();
+                tx.send(target_path.clone()).unwrap();
+            }
+            let shell_view = shell_browser.QueryActiveShellView().unwrap();
+            let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION).unwrap();
+
+            let count = shell_items.GetCount().unwrap_or_default();
+            for i in 0..count {
+                let shell_item = shell_items.GetItemAt(i).unwrap();
+                let display_name = shell_item.GetDisplayName(SIGDN_FILESYSPATH).unwrap();
+                target_path = display_name.to_string().unwrap();
+                break;
+            }
+            CoUninitialize();
+            tx.send(target_path).unwrap();
+        });
+        let target_path = rx.recv().unwrap();
         Ok(target_path)
     }
 }
