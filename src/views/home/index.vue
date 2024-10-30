@@ -17,18 +17,18 @@ interface File {
     file_type: string
     extension: string
 }
-
+const file = ref<File>()
 const init = async () => {
     const win = await getWindow('main')
     win?.listen('file-preview', async (e) => {
 
         const payload = e.payload as string
-        const file: File = await invoke("preview_file", { path: payload })
+        file.value = await invoke("preview_file", { path: payload })
         console.log("file path is ", file);
-        const localePath = convertFileSrc(file.path);
+        const localePath = convertFileSrc(file.value?.path);
         console.log(localePath)
 
-        const fileType = file.file_type;
+        const fileType = file.value?.file_type;
         switch (fileType) {
             case "Image":
                 componentName.value = ImageSupport;
@@ -57,7 +57,7 @@ init()
         <div class="preview-body">
             <component :is="componentName" :src="path"></component>
         </div>
-        <Footer class="preview-footer" />
+        <Footer :file="file" class="preview-footer" />
     </div>
 </template>
 
