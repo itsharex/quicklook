@@ -36,7 +36,6 @@ onMounted(() => {
     <div class="video-support">
         <div class="video-support-inner">
             <div id="videos"></div>
-<!--            <video :src="props.src" controls></video>-->
         </div>
     </div>
 </template>

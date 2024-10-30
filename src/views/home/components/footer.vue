@@ -10,13 +10,13 @@ interface File {
 interface Props {
     file?: File
 }
-const { file } = defineProps<Props>();
+const props = defineProps<Props>();
 
 const fileInfo = ref<FileInfo>();
 
-watch(() => file, async (val: File, oldVal: File) => {
-    if(val.path !== oldVal.path || !oldVal) {
-        fileInfo.value = await lstat(val.path)
+watch(() => props.file, async (val, oldVal) => {
+    if(val?.path !== oldVal?.path || !oldVal) {
+        fileInfo.value = await lstat(val?.path as string)
         // console.log(fileInfo.value, file)
     }
 })
@@ -24,8 +24,8 @@ watch(() => file, async (val: File, oldVal: File) => {
 
 <template>
     <div class="footer">
-        <span class="footer-item">文件类型：{{ file?.file_type }}</span>
-        <span class="footer-item">文件格式：{{ file?.extension }}</span>
+        <span class="footer-item">文件类型：{{ props.file?.file_type }}</span>
+        <span class="footer-item">文件格式：{{ props.file?.extension }}</span>
         <span class="footer-item">文件大小：{{ fileInfo?.size }}</span>
     </div>
 </template>

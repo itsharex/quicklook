@@ -23,7 +23,7 @@ const init = async () => {
     win?.listen('file-preview', async (e) => {
 
         const payload = e.payload as string
-        file.value = await invoke("preview_file", { path: payload })
+        file.value = await invoke("preview_file", { path: payload }) as File;
         console.log("file path is ", file);
         const localePath = convertFileSrc(file.value?.path);
         console.log(localePath)

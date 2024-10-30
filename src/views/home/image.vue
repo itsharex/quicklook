@@ -38,7 +38,7 @@ onMounted(()=>{
     init()
 })
 
-watch(()=>props.src, (val,oldVal)=>{
+watch(()=> props.src, (val,oldVal)=>{
     if (val !== oldVal) {
         init()
     }
