@@ -15,6 +15,7 @@ windows 平台的文件预览工具
 ```bash
 git clone https://github.com/GuoJikun/quicklook.git 
 ```
+
 ### 运行项目
 
 > 推荐使用 pnpm
@@ -29,3 +30,13 @@ pnpm tauri dev 运行项目
 ```bash
 pnpm tauri build
 ```
+
+## 支持预览文件
+
+> 未完全完成
+
+- Image: svg\png\apng\jpg\jpeg\gif\bmp\webp
+- Markdown: md\markdown
+- Doc: xlsx\xls\csv\ods\tsv\
+- Syntx Highlight: txt\js\c++\h++\
+- Font: ttf\otf\woff\woff2
