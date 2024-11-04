@@ -6,6 +6,7 @@
   "permissions": [
     "autostart:default",
     "core:default",
-    "fs:default"
+    "fs:default",
+    "updater:default"
   ]
 }
