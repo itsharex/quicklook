@@ -1,8 +1,9 @@
 use tauri::{
     menu::{MenuBuilder, MenuItem, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    App, Manager,
+    App, Manager, WebviewWindowBuilder, WebviewUrl
 };
+
 pub fn create_tray(app: &mut App) -> tauri::Result<()> {
     let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
     let upgrade = MenuItem::with_id(app, "upgrade", "检查更新", true, None::<&str>)?;
@@ -25,6 +26,12 @@ pub fn create_tray(app: &mut App) -> tauri::Result<()> {
             }
             "setting" => {
                 println!("Setting");
+                // 打开设置窗口
+                let webview_window = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("/settings".into())).build().unwrap();
+                
+                let _ = webview_window.center();
+                let _ = webview_window.set_title("设置");
+                let _ = webview_window.show();
             }
             // Add more events here
             _ => {}
