@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { readTextFile } from '@tauri-apps/plugin-fs'
+import MarkdownIt from 'markdown-it'
+
+const md = new MarkdownIt()
 
 defineOptions({
     name: 'MdSupport',
@@ -19,7 +22,8 @@ watch(
     () => props.src,
     async (val, old) => {
         if (!old || val !== old) {
-            content.value = await readTextFile(props.src)
+            const ctx = await readTextFile(props.src)
+            content.value = md.render(ctx || '')
         }
     },
     { immediate: true },
@@ -28,9 +32,7 @@ watch(
 
 <template>
     <div class="video-support">
-        <div class="video-support-inner">
-            {{ content }}
-        </div>
+        <div class="video-support-inner" v-html="content"></div>
     </div>
 </template>
 
