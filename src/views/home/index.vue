@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { ref, shallowRef, type ComponentInstance } from 'vue'
-import { convertFileSrc, invoke } from '@tauri-apps/api/core'
-import { getWindow  } from "@/utils/index"
+import { ref, shallowRef } from 'vue'
+import { convertFileSrc } from '@tauri-apps/api/core'
+import { getWindow } from '@/utils/index'
 import Header from './components/header.vue'
 import Footer from './components/footer.vue'
 import NotSupport from './not-support.vue'
 import ImageSupport from './image.vue'
 import VideoSupport from './video.vue'
 import FontSupport from './font.vue'
+import MdSupport from './md.vue'
+
+type Component = typeof NotSupport | typeof ImageSupport | typeof VideoSupport | typeof FontSupport | typeof MdSupport
 
 const path = ref<string>('')
-const componentName = shallowRef<ComponentInstance<any>>(NotSupport)
+const componentName = shallowRef<Component>(NotSupport)
 
 interface File {
     path: string
@@ -20,35 +23,40 @@ interface File {
 const file = ref<File>()
 const init = async () => {
     const win = await getWindow('main')
-    win?.listen('file-preview', async (e) => {
-
-        const payload = e.payload as string
-        file.value = await invoke("preview_file", { path: payload }) as File;
-        console.log("file path is ", file);
-        const localePath = convertFileSrc(file.value?.path);
+    win?.listen('file-preview', async e => {
+        const payload = e.payload
+        file.value = payload as File
+        console.log('file path is ', file.value)
+        const localePath = convertFileSrc(file.value?.path)
         console.log(localePath)
 
-        const fileType = file.value?.file_type;
+        const fileType = file.value?.file_type
         switch (fileType) {
-            case "Image":
-                componentName.value = ImageSupport;
-                break;
-            case "Video":
-                componentName.value = VideoSupport;
-                break;
-            case "Font":
-                componentName.value = FontSupport;
-                break;
+            case 'Image':
+                componentName.value = ImageSupport
+                path.value = localePath
+                break
+            case 'Video':
+                componentName.value = VideoSupport
+                path.value = localePath
+                break
+            case 'Font':
+                componentName.value = FontSupport
+                path.value = localePath
+                break
+            case 'Markdown':
+                componentName.value = MdSupport
+                path.value = file.value?.path
+                break
             default:
                 componentName.value = NotSupport
-                break;
+                path.value = localePath
+                break
         }
-        path.value = localePath;
     })
 }
 
 init()
-
 </script>
 
 <template>
@@ -67,13 +75,13 @@ init()
     height: 100vh;
     overflow: hidden;
     position: relative;
-    &-header{
+    &-header {
         position: absolute;
         left: 0;
         top: 0;
         width: 100%;
     }
-    &-footer{
+    &-footer {
         position: absolute;
         left: 0;
         bottom: 0;

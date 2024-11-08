@@ -26,7 +26,19 @@
     "core:path:allow-extname",
     {
       "identifier": "fs:allow-lstat",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        {
+          "path": "**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [
+        {
+          "path": "**"
+        }
+      ]
     }
   ]
 }

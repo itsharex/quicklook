@@ -27,6 +27,10 @@ use windows::{
 #[path = "./helper.rs"]
 mod helper;
 
+#[path = "./utils/mod.rs"]
+mod utils;
+use utils::get_file_info;
+
 #[derive(Debug)]
 pub struct PreviewFile {
     hook_handle: Option<WindowsAndMessaging::HHOOK>, // 钩子的句柄
@@ -276,7 +280,8 @@ impl PreviewFile {
             let window = app.get_webview_window("main").unwrap();
             window.show()?;
             window.set_focus()?;
-            window.emit("file-preview", file_path)?;
+            let file_info = get_file_info(&file_path.unwrap());
+            window.emit("file-preview", file_info)?;
         }
         
         Ok(())

@@ -1,10 +1,6 @@
 use tauri::command;
 
-#[path = "./utils/mod.rs"]
-mod utils;
-use utils::preview;
-
 #[command]
-pub fn preview_file(path: String) -> Result<preview::File, String> {
-    preview::preview_file(path)
+pub fn my_custom_command() {
+  println!("Hello from my custom command!");
 }
