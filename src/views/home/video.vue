@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from "vue"
+import { watch } from 'vue'
 import Player, { I18N } from 'xgplayer'
 import 'xgplayer/dist/index.min.css'
 import ZH from 'xgplayer/es/lang/zh-cn'
@@ -8,28 +8,37 @@ import ZH from 'xgplayer/es/lang/zh-cn'
 I18N.use(ZH)
 
 defineOptions({
-    name: "VideoSupport",
+    name: 'VideoSupport',
 })
 
 interface Props {
     src?: string
 }
-const props = withDefaults(defineProps<Props>(),{
-    src: ""
+const props = withDefaults(defineProps<Props>(), {
+    src: '',
 })
-let player: Player | null = null;
-onMounted(() => {
-    if (player !== null){
-        player.switchURL(props.src)
-    } else {
-        player = new Player({
-            id: 'videos',
-            url: props.src,
-            height: '100%',
-            width: '100%',
-        })
-    }
-})
+let player: Player | null = null
+
+watch(
+    () => props.src,
+    (val, old) => {
+        if (val !== old && val !== '') {
+            if (player !== null) {
+                player.destroy()
+                ;(document.querySelector('#videos') as HTMLElement).innerHTML = ''
+            }
+            player = new Player({
+                id: 'videos',
+                url: props.src,
+                height: '100%',
+                width: '100%',
+            })
+        }
+    },
+    {
+        immediate: true,
+    },
+)
 </script>
 
 <template>
