@@ -85,9 +85,7 @@ init()
                     <component :is="componentName" :src="path" :type="file?.extension"></component>
                 </template>
                 <template #fallback>
-                    <div>
-                        <span>Loading</span>
-                    </div>
+                    <el-loading> </el-loading>
                 </template>
             </Suspense>
         </div>

@@ -10,6 +10,6 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["naive-ui/volar"]
+    "types": ["naive-ui/volar", "element-plus/global"]
   }
 }
