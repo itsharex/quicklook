@@ -15,14 +15,20 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "@shikijs/markdown-it": "^1.22.2",
     "@tauri-apps/api": "^2.0.3",
     "@tauri-apps/plugin-autostart": "~2",
     "@tauri-apps/plugin-fs": "~2",
+    "@tauri-apps/plugin-updater": "~2",
     "@vicons/fluent": "^0.12.0",
     "@vueuse/core": "^11.1.0",
+    "element-plus": "^2.8.7",
     "leafer-ui": "^1.0.7",
+    "markdown-it": "^14.1.0",
     "naive-ui": "^2.40.1",
     "pinia": "^2.2.4",
+    "shiki": "^1.22.2",
     "vue": "^3.5.12",
     "vue-router": "^4.4.5",
     "xgplayer": "^3.0.20"
@@ -31,6 +37,7 @@
     "@tauri-apps/cli": "^2.0.3",
     "@tsconfig/node20": "^20.1.4",
     "@types/jsdom": "^21.1.7",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^20.16.11",
     "@vitejs/plugin-vue": "^5.1.4",
     "@vitejs/plugin-vue-jsx": "^4.0.1",

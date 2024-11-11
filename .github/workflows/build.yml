@@ -1,0 +1,64 @@
+name: Publish Release
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - platform: windows-latest
+            args: "--verbose"
+            target: "windows"
+          # - platform: macos-latest
+          #   args: "--target x86_64-apple-darwin"
+          #   target: "macos-intel"
+          # - platform: macos-latest
+          #   args: "--target aarch64-apple-darwin"
+          #   target: "macos-arm"
+    runs-on: ${{ matrix.settings.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      # - name: Add Rust targets(macOS Intel)
+      #   if: matrix.settings.target == 'macos-intel'
+      #   run: rustup target add x86_64-apple-darwin
+      # - name: Add Rust targets(macOS ARM)
+      #   if: matrix.settings.target == 'macos-arm'
+      #   run: rustup target add aarch64-apple-darwin
+
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.12.12
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Build app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: ${{ matrix.settings.args }}
+          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
+          releaseName: v__VERSION__-beta
+          releaseBody: "This is a release"
+          releaseDraft: true
+          prerelease: false

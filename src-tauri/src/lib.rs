@@ -8,6 +8,7 @@ mod command;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
@@ -32,7 +33,7 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![command::preview_file])
+        .invoke_handler(tauri::generate_handler![command::my_custom_command])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
