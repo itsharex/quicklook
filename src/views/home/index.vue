@@ -9,8 +9,17 @@ import ImageSupport from './image.vue'
 import VideoSupport from './video.vue'
 import FontSupport from './font.vue'
 import MdSupport from './md.vue'
+import CodeSupport from './code.vue'
+import TextSupport from './text.vue'
 
-type Component = typeof NotSupport | typeof ImageSupport | typeof VideoSupport | typeof FontSupport | typeof MdSupport
+type Component =
+    | typeof NotSupport
+    | typeof ImageSupport
+    | typeof VideoSupport
+    | typeof FontSupport
+    | typeof MdSupport
+    | typeof CodeSupport
+    | typeof TextSupport
 
 const path = ref<string>('')
 const componentName = shallowRef<Component>(NotSupport)
@@ -48,6 +57,14 @@ const init = async () => {
                 componentName.value = MdSupport
                 path.value = file.value?.path
                 break
+            case 'Code':
+                componentName.value = CodeSupport
+                path.value = file.value?.path
+                break
+            case 'Text':
+                componentName.value = TextSupport
+                path.value = file.value?.path
+                break
             default:
                 componentName.value = NotSupport
                 path.value = localePath
@@ -63,7 +80,16 @@ init()
     <div class="preview">
         <Header class="preview-header" />
         <div class="preview-body">
-            <component :is="componentName" :src="path"></component>
+            <Suspense>
+                <template #default>
+                    <component :is="componentName" :src="path" :type="file?.extension"></component>
+                </template>
+                <template #fallback>
+                    <div>
+                        <span>Loading</span>
+                    </div>
+                </template>
+            </Suspense>
         </div>
         <Footer :file="file" class="preview-footer" />
     </div>

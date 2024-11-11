@@ -4,14 +4,16 @@ import { readTextFile } from '@tauri-apps/plugin-fs'
 import { codeToHtml } from 'shiki'
 
 defineOptions({
-    name: 'TextSupport',
+    name: 'CodeSupport',
 })
 
 interface Props {
     src?: string
+    type?: string
 }
 const props = withDefaults(defineProps<Props>(), {
     src: '',
+    type: '',
 })
 
 const content = ref<string>()
@@ -20,9 +22,15 @@ watch(
     () => props.src,
     async (val, old) => {
         if (!old || val !== old) {
-            const txt = await readTextFile(props.src)
-
-            content.value = txt
+            const code = await readTextFile(props.src)
+            const html = await codeToHtml(code, {
+                lang: 'javascript',
+                themes: {
+                    light: 'github-light',
+                    dark: 'github-dark',
+                },
+            })
+            content.value = html
         }
     },
     { immediate: true },
@@ -30,30 +38,27 @@ watch(
 </script>
 
 <template>
-    <div class="text-support">
-        <div class="text-support-inner">
-            <pre>{{ content }}</pre>
-        </div>
+    <div class="code-support">
+        <div class="code-support-inner" v-html="content"></div>
     </div>
 </template>
 
 <style scoped lang="scss">
-.text-support {
+.code-support {
     width: 100%;
     height: 100%;
     display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
     &-inner {
         width: 100%;
         height: 100%;
         overflow: auto;
         padding: 12px 24px;
         font-size: 14px;
-        font-family: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-        & pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-family: inherit;
-            font-size: inherit;
+        & :deep(pre code) {
+            font-family: 'Courier New', Courier, monospace;
         }
     }
 }
