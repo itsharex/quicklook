@@ -1,9 +1,10 @@
 use tauri::{
-    menu::{MenuBuilder, MenuItem, MenuItemBuilder}, tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}, App, Emitter, Manager, WebviewUrl, WebviewWindowBuilder
+    menu::{MenuBuilder, MenuItem, MenuItemBuilder},
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    App, Emitter, Manager, WebviewUrl, WebviewWindowBuilder,
 };
 #[path = "updater.rs"]
 mod updater;
-
 
 pub fn create_tray(app: &mut App) -> tauri::Result<()> {
     let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
@@ -16,7 +17,10 @@ pub fn create_tray(app: &mut App) -> tauri::Result<()> {
     let pkg_info = app.package_info();
     let name = pkg_info.name.clone();
     let version = pkg_info.version.clone();
-    let tooltip_text = format!("{} v{}.{}.{}", &name, &version.major, &version.minor, &version.patch);
+    let tooltip_text = format!(
+        "{} v{}.{}.{}",
+        &name, &version.major, &version.minor, &version.patch
+    );
 
     let _ = TrayIconBuilder::with_id("tray")
         .icon(app.default_window_icon().unwrap().clone())
@@ -29,14 +33,20 @@ pub fn create_tray(app: &mut App) -> tauri::Result<()> {
             }
             "upgrade" => {
                 let _ = app.emit("updater", {});
-                let _ = updater::update(app.app_handle().clone());
+                let handle = app.clone();
+                tauri::async_runtime::spawn(async move {
+                    updater::update(&handle).await.unwrap();
+                });
                 println!("Upgrade");
             }
             "setting" => {
                 println!("Setting");
                 // 打开设置窗口
-                let webview_window = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("/settings".into())).build().unwrap();
-                
+                let webview_window =
+                    WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("/settings".into()))
+                        .build()
+                        .unwrap();
+
                 let _ = webview_window.center();
                 let _ = webview_window.set_title("设置");
                 let _ = webview_window.show();
