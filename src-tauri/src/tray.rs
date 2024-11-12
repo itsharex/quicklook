@@ -1,8 +1,9 @@
 use tauri::{
-    menu::{MenuBuilder, MenuItem, MenuItemBuilder},
-    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    App, Manager, WebviewWindowBuilder, WebviewUrl
+    menu::{MenuBuilder, MenuItem, MenuItemBuilder}, tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}, App, Emitter, Manager, WebviewUrl, WebviewWindowBuilder
 };
+#[path = "updater.rs"]
+mod updater;
+
 
 pub fn create_tray(app: &mut App) -> tauri::Result<()> {
     let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
@@ -12,9 +13,14 @@ pub fn create_tray(app: &mut App) -> tauri::Result<()> {
     let menu = MenuBuilder::new(app)
         .items(&[&setting, &auto_start, &upgrade, &quit])
         .build()?;
+    let pkg_info = app.package_info();
+    let name = pkg_info.name.clone();
+    let version = pkg_info.version.clone();
+    let tooltip_text = format!("{} v{}.{}.{}", &name, &version.major, &version.minor, &version.patch);
 
     let _ = TrayIconBuilder::with_id("tray")
         .icon(app.default_window_icon().unwrap().clone())
+        .tooltip(tooltip_text)
         .menu(&menu)
         .menu_on_left_click(false)
         .on_menu_event(move |app, event| match event.id.as_ref() {
@@ -22,6 +28,8 @@ pub fn create_tray(app: &mut App) -> tauri::Result<()> {
                 app.exit(0);
             }
             "upgrade" => {
+                let _ = app.emit("updater", {});
+                let _ = updater::update(app.app_handle().clone());
                 println!("Upgrade");
             }
             "setting" => {
