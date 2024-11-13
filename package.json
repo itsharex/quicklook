@@ -19,6 +19,7 @@
     "@shikijs/markdown-it": "^1.22.2",
     "@tauri-apps/api": "^2.0.3",
     "@tauri-apps/plugin-autostart": "~2",
+    "@tauri-apps/plugin-dialog": "~2",
     "@tauri-apps/plugin-fs": "~2",
     "@tauri-apps/plugin-updater": "~2",
     "@vicons/fluent": "^0.12.0",

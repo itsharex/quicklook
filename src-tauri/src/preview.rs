@@ -283,7 +283,7 @@ impl PreviewFile {
             let file_info = get_file_info(&file_path.unwrap());
             window.emit("file-preview", file_info)?;
         }
-        
+
         Ok(())
     }
 
