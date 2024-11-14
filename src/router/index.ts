@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/home/index.vue'
+import previewView from '../views/preview/index.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,6 +9,53 @@ const router = createRouter({
             path: '/',
             name: 'home',
             component: HomeView,
+        },
+        {
+            path: '/preview',
+            name: 'preview',
+            component: previewView,
+            children: [
+                {
+                    path: '/preview/video',
+                    name: 'previewVideo',
+                    component: () => import('@/views/preview/video.vue'),
+                },
+                {
+                    path: '/preview/image',
+                    name: 'previewImage',
+                    component: () => import('@/views/preview/image.vue'),
+                },
+                {
+                    path: '/preview/audio',
+                    name: 'previewAudio',
+                    component: () => import('@/views/preview/audio.vue'),
+                },
+                {
+                    path: '/preview/code',
+                    name: 'previewCode',
+                    component: () => import('@/views/preview/code.vue'),
+                },
+                {
+                    path: '/preview/font',
+                    name: 'previewFont',
+                    component: () => import('@/views/preview/font.vue'),
+                },
+                {
+                    path: '/preview/md',
+                    name: 'previewMd',
+                    component: () => import('@/views/preview/md.vue'),
+                },
+                {
+                    path: '/preview/text',
+                    name: 'previewText',
+                    component: () => import('@/views/preview/text.vue'),
+                },
+                {
+                    path: '/preview/not-support',
+                    name: 'previewNotSupport',
+                    component: () => import('@/views/preview/not-support.vue'),
+                },
+            ],
         },
         {
             path: '/settings',
