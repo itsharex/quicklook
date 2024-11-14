@@ -74,9 +74,9 @@ pub fn get_file_info(path: &String) -> Option<File> {
                     path: path_str,
                     extension,
                 }),
-                "cpp" | "js" | "mjs" | "ts" | "mts" | "rs" | "py" | "java" | "html" | "css"
+                "cpp" | "js" | "mjs" | "ts" | "mts" | "tsx" | "rs" | "py" | "java" | "html" | "css"
                 | "scss" | "sass" | "less" | "c" | "go" | "vue" | "jsx" | "json" | "yml"
-                | "yaml" | "toml" => Some(File {
+                | "yaml" | "toml" | "bat" | "ps1" | "ini" | "swift" | "kt" | "php" | "h" | "xml" => Some(File {
                     file_type: "Code".to_string(),
                     path: path_str,
                     extension,
@@ -97,7 +97,7 @@ pub fn get_file_info(path: &String) -> Option<File> {
         None => Some(File {
             file_type: "Text".to_string(),
             path: path_str,
-            extension: String::from(""),
+            extension: String::from("txt"),
         }),
     }
 }
