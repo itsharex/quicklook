@@ -277,11 +277,18 @@ impl PreviewFile {
     pub fn preview_file(app: AppHandle) -> Result<(), TauriError> {
         let file_path = Selected::new();
         if file_path.is_some() {
-            let window = app.get_webview_window("main").unwrap();
-            window.show()?;
-            window.set_focus()?;
             let file_info = get_file_info(&file_path.unwrap());
-            window.emit("file-preview", file_info)?;
+            // let window = app.get_webview_window("main").unwrap();
+            // window.show()?;
+            // window.set_focus()?;
+            // window.emit("file-preview", file_info)?;
+
+            
+
+            if let Ok(ref window) = helper::create_preview_window(&app) {
+                window.emit("file-preview", file_info)?;
+            }
+            
         }
 
         Ok(())

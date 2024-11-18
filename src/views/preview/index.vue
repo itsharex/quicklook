@@ -2,27 +2,13 @@
 import { ref, shallowRef } from 'vue'
 import { convertFileSrc } from '@tauri-apps/api/core'
 import { getWindow } from '@/utils/index'
-import Header from './components/header.vue'
-import Footer from './components/footer.vue'
-import NotSupport from './not-support.vue'
-import ImageSupport from './image.vue'
-import VideoSupport from './video.vue'
-import FontSupport from './font.vue'
-import MdSupport from './md.vue'
-import CodeSupport from './code.vue'
-import TextSupport from './text.vue'
+import { useRouter } from 'vue-router'
 
-type Component =
-    | typeof NotSupport
-    | typeof ImageSupport
-    | typeof VideoSupport
-    | typeof FontSupport
-    | typeof MdSupport
-    | typeof CodeSupport
-    | typeof TextSupport
+import LayoutPreview from '@/components/layout-preview.vue'
+
+const router = useRouter()
 
 const path = ref<string>('')
-const componentName = shallowRef<Component>(NotSupport)
 
 interface File {
     path: string
@@ -37,39 +23,58 @@ const init = async () => {
         file.value = payload as File
         console.log('file path is ', file.value)
         const localePath = convertFileSrc(file.value?.path)
-        console.log(localePath)
+        let route = {
+            name: 'peviewNotSupport',
+            query: {},
+        }
 
         const fileType = file.value?.file_type
         switch (fileType) {
             case 'Image':
-                componentName.value = ImageSupport
-                path.value = localePath
+                route = {
+                    name: 'peviewImage',
+                    query: { src: localePath },
+                }
                 break
             case 'Video':
-                componentName.value = VideoSupport
-                path.value = localePath
+                route = {
+                    name: 'peviewVideo',
+                    query: { src: localePath },
+                }
                 break
             case 'Font':
-                componentName.value = FontSupport
-                path.value = localePath
+                route = {
+                    name: 'peviewFont',
+                    query: { src: localePath },
+                }
                 break
             case 'Markdown':
-                componentName.value = MdSupport
-                path.value = file.value?.path
+                route = {
+                    name: 'peviewMd',
+                    query: { src: file.value?.path },
+                }
                 break
             case 'Code':
-                componentName.value = CodeSupport
-                path.value = file.value?.path
+                route = {
+                    name: 'peviewCode',
+                    query: { src: file.value?.path },
+                }
                 break
             case 'Text':
-                componentName.value = TextSupport
-                path.value = file.value?.path
+                route = {
+                    name: 'peviewText',
+                    query: { src: file.value?.path },
+                }
                 break
             default:
-                componentName.value = NotSupport
-                path.value = localePath
+                route = {
+                    name: 'peviewNotSupport',
+                    query: {},
+                }
                 break
         }
+
+        router.push(route as object)
     })
 }
 
@@ -77,20 +82,7 @@ init()
 </script>
 
 <template>
-    <div class="preview">
-        <Header class="preview-header" />
-        <div class="preview-body">
-            <Suspense>
-                <template #default>
-                    <component :is="componentName" :src="path" :type="file?.extension"></component>
-                </template>
-                <template #fallback>
-                    <div>loading...</div>
-                </template>
-            </Suspense>
-        </div>
-        <Footer :file="file" class="preview-footer" />
-    </div>
+    <LayoutPreview class="preview"> </LayoutPreview>
 </template>
 
 <style scoped lang="scss">
