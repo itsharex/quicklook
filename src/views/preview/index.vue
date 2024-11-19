@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { ref, shallowRef } from 'vue'
+import { ref } from 'vue'
 import { convertFileSrc } from '@tauri-apps/api/core'
 import { getWindow } from '@/utils/index'
+import Header from '@/components/header.vue'
+import Footer from '@/components/footer.vue'
 import { useRouter } from 'vue-router'
 
-import LayoutPreview from '@/components/layout-preview.vue'
-
 const router = useRouter()
-
-const path = ref<string>('')
 
 interface File {
     path: string
@@ -17,14 +15,17 @@ interface File {
 }
 const file = ref<File>()
 const init = async () => {
-    const win = await getWindow('main')
+    const win = await getWindow('preview')
+
     win?.listen('file-preview', async e => {
+        console.log(12333213213)
         const payload = e.payload
         file.value = payload as File
-        console.log('file path is ', file.value)
         const localePath = convertFileSrc(file.value?.path)
+        console.log(localePath)
+
         let route = {
-            name: 'peviewNotSupport',
+            path: '/preview/not-support',
             query: {},
         }
 
@@ -32,43 +33,43 @@ const init = async () => {
         switch (fileType) {
             case 'Image':
                 route = {
-                    name: 'peviewImage',
+                    path: '/preview/image',
                     query: { src: localePath },
                 }
                 break
             case 'Video':
                 route = {
-                    name: 'peviewVideo',
+                    path: '/preview/video',
                     query: { src: localePath },
                 }
                 break
             case 'Font':
                 route = {
-                    name: 'peviewFont',
+                    path: '/preview/font',
                     query: { src: localePath },
                 }
                 break
             case 'Markdown':
                 route = {
-                    name: 'peviewMd',
+                    path: '/preview/md',
                     query: { src: file.value?.path },
                 }
                 break
             case 'Code':
                 route = {
-                    name: 'peviewCode',
+                    path: '/preview/code',
                     query: { src: file.value?.path },
                 }
                 break
             case 'Text':
                 route = {
-                    name: 'peviewText',
+                    path: '/preview/text',
                     query: { src: file.value?.path },
                 }
                 break
             default:
                 route = {
-                    name: 'peviewNotSupport',
+                    path: '/preview/not-support',
                     query: {},
                 }
                 break
@@ -76,13 +77,32 @@ const init = async () => {
 
         router.push(route as object)
     })
+    console.log(win)
 }
 
 init()
 </script>
 
 <template>
-    <LayoutPreview class="preview"> </LayoutPreview>
+    <div class="preview">
+        <Header class="preview-header" />
+        <div class="preview-body">
+            <router-view v-slot="{ Component }">
+                <template v-if="Component">
+                    <transition mode="out-in">
+                        <suspense>
+                            <!-- 主要内容 -->
+                            <component :is="Component"></component>
+
+                            <!-- 加载中状态 -->
+                            <template #fallback> 正在加载... </template>
+                        </suspense>
+                    </transition>
+                </template>
+            </router-view>
+        </div>
+        <Footer :file="file" class="preview-footer" />
+    </div>
 </template>
 
 <style scoped lang="scss">

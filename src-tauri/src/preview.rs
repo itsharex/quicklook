@@ -1,6 +1,6 @@
 use std::sync::mpsc;
 use std::thread;
-use tauri::{AppHandle, Emitter, Error as TauriError, Manager};
+use tauri::{ webview::PageLoadEvent, AppHandle, Emitter, Error as TauriError, Event, EventTarget, Manager, WebviewUrl, WebviewWindowBuilder };
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
     Win32::{
@@ -278,17 +278,55 @@ impl PreviewFile {
         let file_path = Selected::new();
         if file_path.is_some() {
             let file_info = get_file_info(&file_path.unwrap());
-            // let window = app.get_webview_window("main").unwrap();
-            // window.show()?;
-            // window.set_focus()?;
-            // window.emit("file-preview", file_info)?;
-
             
+            match app.get_webview_window("preview") {
+                Some(window) => {
+                    println!("preview window already exists");
+                    let _ = window.emit_to(EventTarget::webview_window("preview"), "file-preview", file_info.clone());
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+                None => {
+                    std::thread::spawn(move || {
+                        let result = WebviewWindowBuilder::new(&app, "preview", WebviewUrl::App("/preview".into()))
+                            .center()
+                            .decorations(false)
+                            .skip_taskbar(true)
+                            .on_page_load(move |window, payload| {
+                                println!("preview window loaded {:?}", window.label());
+                                match payload.event() {
+                                    PageLoadEvent::Finished => {
+                                        println!("{} finished loading", payload.url());
+                                        let _ = window.emit_to(EventTarget::webview_window("preview"), "file-preview", file_info.clone());
+                                    }
+                                    _ => {}
+                                }
+                                
+                                
+                            })
+                            .focused(true)
+                            .visible_on_all_workspaces(true)
+                            .build();
 
-            if let Ok(ref window) = helper::create_preview_window(&app) {
-                window.emit("file-preview", file_info)?;
+                        if let Ok(preview) = result {
+                            println!("preview window created");
+                            
+                            let preview_clone = preview.clone();
+
+                            let _ = preview.on_window_event(move |event| {
+                                if let tauri::WindowEvent::Focused(false) = event {
+                                    println!("preview window closed");
+                                    let _ = preview_clone.close();
+                                }
+
+                            });
+                            let _ = preview.show();
+                            let _ = preview.open_devtools();
+                        }
+                    });
+                    
+                }
             }
-            
         }
 
         Ok(())

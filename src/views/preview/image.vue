@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import { Leafer, Image } from 'leafer-ui'
+import { useRoute } from 'vue-router'
 
 defineOptions({
     name: 'ImageSupport',
 })
 
-interface Props {
-    src?: string
-}
-const props = withDefaults(defineProps<Props>(), {
-    src: '',
-})
+const route = useRoute()
 let leafer: Leafer | null = null
 let image: Image | null = null
 
@@ -27,7 +23,7 @@ const init = () => {
     })
 
     image = new Image({
-        url: props.src,
+        url: route.query.src as string,
         draggable: true,
     })
 
@@ -38,7 +34,7 @@ onMounted(() => {
 })
 
 watch(
-    () => props.src,
+    () => route.path,
     (val, oldVal) => {
         if (val !== oldVal) {
             init()
