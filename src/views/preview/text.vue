@@ -1,40 +1,37 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { readTextFile } from '@tauri-apps/plugin-fs'
-import { codeToHtml } from 'shiki'
+// import { codeToHtml } from 'shiki'
+import LayoutPreview from '@/components/layout-preview.vue'
+import { useRoute } from 'vue-router'
+import type { FileInfo } from '@/utils/typescript'
+
+const route = useRoute()
 
 defineOptions({
     name: 'TextSupport',
 })
 
-interface Props {
-    src?: string
-}
-const props = withDefaults(defineProps<Props>(), {
-    src: '',
-})
-
+const fileInfo = ref<FileInfo>()
 const content = ref<string>()
 
-watch(
-    () => props.src,
-    async (val, old) => {
-        if (!old || val !== old) {
-            const txt = await readTextFile(props.src)
+onMounted(async () => {
+    const val = route?.query?.path as string
+    console.log('path', val)
+    const txt = await readTextFile(val)
 
-            content.value = txt
-        }
-    },
-    { immediate: true },
-)
+    content.value = txt
+})
 </script>
 
 <template>
-    <div class="text-support">
-        <div class="text-support-inner">
-            <pre>{{ content }}</pre>
+    <LayoutPreview :file="fileInfo">
+        <div class="text-support">
+            <div class="text-support-inner">
+                <pre>{{ content }}</pre>
+            </div>
         </div>
-    </div>
+    </LayoutPreview>
 </template>
 
 <style scoped lang="scss">

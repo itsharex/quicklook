@@ -29,6 +29,7 @@ watch(
             }
             player = new Player({
                 id: 'videos',
+
                 url: props.src,
                 height: '100%',
                 width: '100%',

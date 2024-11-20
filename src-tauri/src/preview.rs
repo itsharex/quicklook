@@ -1,6 +1,6 @@
 use std::sync::mpsc;
 use std::thread;
-use tauri::{AppHandle, Emitter, Error as TauriError, Manager};
+use tauri::{ webview::PageLoadEvent, AppHandle, Emitter, Error as TauriError, Event, EventTarget, Listener, Manager, WebviewUrl, WebviewWindowBuilder };
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
     Win32::{
@@ -29,7 +29,7 @@ mod helper;
 
 #[path = "./utils/mod.rs"]
 mod utils;
-use utils::get_file_info;
+use utils::{get_file_info, File as UFile};
 
 #[derive(Debug)]
 pub struct PreviewFile {
@@ -221,6 +221,25 @@ impl Drop for Selected {
     }
 }
 
+pub struct WebRoute {
+    path: String,
+    query: UFile,
+}
+impl WebRoute {
+    pub fn to_url(&self) -> String {
+        let mut url = self.path.clone();
+        url.push_str("?");
+        url.push_str(format!("file_type={}&path={}&extension={}", self.query.get_file_type(), urlencoding::encode(&self.query.get_path()), self.query.get_extension()).as_str());
+        url
+    }
+    pub fn new(path: String, query: UFile) -> Self {
+        Self {
+            path,
+            query,
+        }
+    }
+}
+
 #[allow(dead_code)]
 impl PreviewFile {
     // 注册键盘钩子
@@ -277,11 +296,77 @@ impl PreviewFile {
     pub fn preview_file(app: AppHandle) -> Result<(), TauriError> {
         let file_path = Selected::new();
         if file_path.is_some() {
-            let window = app.get_webview_window("main").unwrap();
-            window.show()?;
-            window.set_focus()?;
             let file_info = get_file_info(&file_path.unwrap());
-            window.emit("file-preview", file_info)?;
+
+            if file_info.is_none() {
+                return Ok(());
+            }
+            let file_info = file_info.unwrap();
+            match app.get_webview_window("preview") {
+                Some(window) => {
+                    let route = match file_info.get_file_type().as_str() {
+                        "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
+                        "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
+                        "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
+                        "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
+                        "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
+                        "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
+                        _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
+                    };
+
+                    let url = route.to_url();
+                    let js = format!("window.location.href = '{}'", &url);
+                    let _ = window.eval(js.as_str());
+                    
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+                None => {
+                    let result = WebviewWindowBuilder::new(&app, "preview", WebviewUrl::App("/preview".into()))
+                        .center()
+                        .decorations(false)
+                        .skip_taskbar(true)
+                        .on_page_load(move |window, payload| {
+                            let cur_path = payload.url().path();
+                            
+                            if cur_path == "/preview" {
+                                match payload.event() {
+                                    PageLoadEvent::Finished => {
+                                        let route = match file_info.get_file_type().as_str() {
+                                            "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
+                                            "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
+                                            "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
+                                            "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
+                                            "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
+                                            "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
+                                            _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
+                                        };
+
+                                        let url = route.to_url();
+                                        let js = format!("window.location.href = '{}'", &url);
+                                        let _ = window.eval(js.as_str());
+                                        
+                                        let _ = window.show();
+                                        let _ = window.set_focus();
+                                    }
+                                    _ => {}
+                                }
+                            }
+                            
+                            
+                            
+                        })
+                        .focused(true)
+                        .visible_on_all_workspaces(true)
+                        .build();
+
+                    if let Ok(preview) = result {
+                        
+                        let _ = preview.show();
+                    }
+                    
+                }
+            }
         }
 
         Ok(())

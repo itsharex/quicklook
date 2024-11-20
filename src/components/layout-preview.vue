@@ -1,16 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import Header from './header.vue'
+import Footer from './footer.vue'
+import type { FileInfo } from '@/utils/typescript'
 
-const tmp = ref()
-const init = async () => {
-    console.log('init', tmp)
+interface Props {
+    file?: FileInfo
+    loading?: boolean
 }
 
-init()
+const props = defineProps<Props>()
 </script>
 
 <template>
-    <div class="preview">Home</div>
+    <div class="preview">
+        <Header class="preview-header" />
+        <div class="preview-body" v-loading="props.loading">
+            <slot></slot>
+        </div>
+        <Footer :file="props.file" class="preview-footer" />
+    </div>
 </template>
 
 <style scoped lang="scss">
