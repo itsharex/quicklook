@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Leafer, Image } from 'leafer-ui'
 import { useRoute } from 'vue-router'
+import type { FileInfo } from '@/utils/typescript'
+import LayoutPreview from '@/components/layout-preview.vue'
+import { convertFileSrc } from '@tauri-apps/api/core'
 
 defineOptions({
     name: 'ImageSupport',
 })
 
 const route = useRoute()
+
 let leafer: Leafer | null = null
 let image: Image | null = null
+const fileInfo = ref<FileInfo>()
 
-const init = () => {
+const init = (path: string) => {
     if (leafer !== null) {
         leafer?.destroy()
         image?.destroy()
@@ -23,32 +28,26 @@ const init = () => {
     })
 
     image = new Image({
-        url: route.query.src as string,
+        url: path,
         draggable: true,
     })
 
     leafer.add(image)
 }
 onMounted(() => {
-    init()
+    fileInfo.value = route.query as unknown as FileInfo
+    init(convertFileSrc(fileInfo.value.path))
 })
-
-watch(
-    () => route.path,
-    (val, oldVal) => {
-        if (val !== oldVal) {
-            init()
-        }
-    },
-)
 </script>
 
 <template>
-    <div class="image-support">
-        <div class="image-support-inner" id="canvas">
-            <!--        <img :src="props.src" alt="image" crossorigin="anonymous">-->
+    <LayoutPreview :file="fileInfo">
+        <div class="image-support">
+            <div class="image-support-inner" id="canvas">
+                <!--        <img :src="props.src" alt="image" crossorigin="anonymous">-->
+            </div>
         </div>
-    </div>
+    </LayoutPreview>
 </template>
 
 <style scoped lang="scss">

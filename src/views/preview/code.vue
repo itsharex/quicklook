@@ -1,46 +1,43 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { readTextFile } from '@tauri-apps/plugin-fs'
 import { codeToHtml } from 'shiki'
+import { useRoute } from 'vue-router'
+import type { FileInfo } from '@/utils/typescript'
+import LayoutPreview from '@/components/layout-preview.vue'
+
+const route = useRoute()
 
 defineOptions({
     name: 'CodeSupport',
 })
 
-interface Props {
-    src?: string
-    type?: string
-}
-const props = withDefaults(defineProps<Props>(), {
-    src: '',
-    type: '',
-})
-
+const fileInfo = ref<FileInfo>()
 const content = ref<string>()
+const loading = ref<boolean>(false)
 
-watch(
-    () => props.src,
-    async (val, old) => {
-        if (!old || val !== old) {
-            const code = await readTextFile(props.src)
-            const html = await codeToHtml(code, {
-                lang: 'javascript',
-                themes: {
-                    light: 'github-light',
-                    dark: 'github-dark',
-                },
-            })
-            content.value = html
-        }
-    },
-    { immediate: true },
-)
+onMounted(async () => {
+    loading.value = false
+    fileInfo.value = route.query as unknown as FileInfo
+    const code = await readTextFile(fileInfo.value.path)
+    const html = await codeToHtml(code, {
+        lang: 'javascript',
+        themes: {
+            light: 'github-light',
+            dark: 'github-dark',
+        },
+    })
+    content.value = html
+    loading.value = true
+})
 </script>
 
 <template>
-    <div class="code-support">
-        <div class="code-support-inner" v-html="content"></div>
-    </div>
+    <LayoutPreview :file="fileInfo" :loading="loading">
+        <div class="code-support">
+            <div class="code-support-inner" v-html="content"></div>
+        </div>
+    </LayoutPreview>
 </template>
 
 <style scoped lang="scss">

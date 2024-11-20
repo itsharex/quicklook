@@ -1,25 +1,24 @@
 <script setup lang="ts">
 import { watch, ref } from 'vue'
-import { lstat, type FileInfo  } from '@tauri-apps/plugin-fs'
+import { lstat, type FileInfo } from '@tauri-apps/plugin-fs'
+import type { FileInfo as File } from '@/utils/typescript'
 
-interface File {
-    path: string
-    file_type: string
-    extension: string
-}
 interface Props {
     file?: File
 }
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
-const fileInfo = ref<FileInfo>();
+const fileInfo = ref<FileInfo>()
 
-watch(() => props.file, async (val, oldVal) => {
-    if(val?.path !== oldVal?.path || !oldVal) {
-        fileInfo.value = await lstat(val?.path as string)
-        // console.log(fileInfo.value, file)
-    }
-})
+watch(
+    () => props.file,
+    async (val, oldVal) => {
+        if (val?.path !== oldVal?.path || !oldVal) {
+            fileInfo.value = await lstat(val?.path as string)
+            // console.log(fileInfo.value, file)
+        }
+    },
+)
 </script>
 
 <template>

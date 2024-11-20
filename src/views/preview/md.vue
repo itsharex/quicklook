@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { readTextFile } from '@tauri-apps/plugin-fs'
 import MarkdownIt from 'markdown-it'
 import Shiki from '@shikijs/markdown-it'
+import { useRoute } from 'vue-router'
+import type { FileInfo } from '@/utils/typescript'
+
+const route = useRoute()
 
 const md = new MarkdownIt()
 
@@ -18,32 +22,29 @@ md.use(highlight)
 defineOptions({
     name: 'MdSupport',
 })
-
-interface Props {
-    src?: string
-}
-const props = withDefaults(defineProps<Props>(), {
-    src: '',
-})
-
+const file = ref<FileInfo>()
 const content = ref<string>()
 
-watch(
-    () => props.src,
-    async (val, old) => {
-        if (!old || val !== old) {
-            const ctx = await readTextFile(props.src)
-            content.value = md.render(ctx || '')
-        }
-    },
-    { immediate: true },
-)
+onMounted(async () => {
+    const val = route?.query?.path as string
+    console.log('path', val)
+    const ctx = await readTextFile(val)
+
+    content.value = md.render(ctx || '')
+})
 </script>
 
 <template>
-    <div class="md-support">
-        <div class="md-support-inner" id="markdown-body" v-html="content"></div>
-    </div>
+    <Suspense>
+        <LayoutPreview :file="file">
+            <div class="md-support">
+                <div class="md-support-inner" id="markdown-body" v-html="content"></div>
+            </div>
+        </LayoutPreview>
+        <template #callback>
+            <div>Loading...</div>
+        </template>
+    </Suspense>
 </template>
 
 <style scoped lang="scss">

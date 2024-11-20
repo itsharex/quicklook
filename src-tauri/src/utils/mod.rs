@@ -18,7 +18,24 @@ impl File {
             extension,
         }
     }
+
+    // 获取文件类型
+    pub fn get_file_type(&self) -> String {
+        self.file_type.clone()
+    }
+
+    // 获取文件路径
+    pub fn get_path(&self) -> String {
+        self.path.clone()
+    }
+
+    // 获取文件扩展名
+    pub fn get_extension(&self) -> String {
+        self.extension.clone()
+    }
+
 }
+
 
 pub fn get_file_info(path: &str) -> Option<File> {
     let file_path = Path::new(path);

@@ -1,61 +1,64 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import type { FileInfo } from '@/utils/typescript'
+import LayoutPreview from '@/components/layout-preview.vue'
+import { convertFileSrc } from '@tauri-apps/api/core'
+
+const route = useRoute()
 
 defineOptions({
-    name: "FontSupport",
+    name: 'FontSupport',
 })
-
-interface Props {
-    src?: string
-}
-const props = withDefaults(defineProps<Props>(),{
-    src: ""
-})
-
-const fontFamily = ref<string>("")
+const fileInfo = ref<FileInfo>()
+const fontFamily = ref<string>('')
 let curFont: FontFace | null = null
 
 const isError = ref(false)
 
 onMounted(() => {
-    if (props.src) {
-        const font = new FontFace('MyFont', `url(${props.src})`);
+    fileInfo.value = route.query as unknown as FileInfo
+    if (fileInfo.value.path) {
+        const path = convertFileSrc(fileInfo.value.path)
+        const font = new FontFace('MyFont', `url(${path})`)
         // 加载字体
-        font.load().then((loadedFont) => {
-            if(curFont) {
-                document.fonts.delete(curFont)
-                curFont = null
-            }
-            curFont = loadedFont
+        font.load()
+            .then(loadedFont => {
+                if (curFont) {
+                    document.fonts.delete(curFont)
+                    curFont = null
+                }
+                curFont = loadedFont
 
-            // 将字体添加到文档中
-            document.fonts.add(loadedFont);
+                // 将字体添加到文档中
+                document.fonts.add(loadedFont)
 
-            // 使用字体
-            fontFamily.value = 'MyFont, sans-serif';
-            isError.value = false
-        }).catch(function(error) {
-            isError.value = true
-            console.error('Font could not be loaded: ' + error);
-        });
+                // 使用字体
+                fontFamily.value = 'MyFont, sans-serif'
+                isError.value = false
+            })
+            .catch(function (error) {
+                isError.value = true
+                console.error('Font could not be loaded: ' + error)
+            })
     }
 })
 </script>
 
 <template>
-<div class="font-support">
-    <div class="font-support-inner" :style="{fontFamily: fontFamily }">
-        <template v-if="isError">
-            字体解析错误
-        </template>
-        <template v-else>
-            <p>ABCDEFGHIGKLMNOPQRSTUVWXYZ</p>
-            <p>abcdefghigklmnopqrstuvwxyz</p>
-            <p>0123456789</p>
-            <p>中国制造惠及全球</p>
-        </template>
-    </div>
-</div>
+    <LayoutPreview :file="fileInfo">
+        <div class="font-support">
+            <div class="font-support-inner" :style="{ fontFamily: fontFamily }">
+                <template v-if="isError"> 字体解析错误 </template>
+                <template v-else>
+                    <p>ABCDEFGHIGKLMNOPQRSTUVWXYZ</p>
+                    <p>abcdefghigklmnopqrstuvwxyz</p>
+                    <p>0123456789</p>
+                    <p>中国制造惠及全球</p>
+                </template>
+            </div>
+        </div>
+    </LayoutPreview>
 </template>
 
 <style scoped lang="scss">
@@ -66,7 +69,7 @@ onMounted(() => {
     justify-content: center;
     align-items: center;
     align-content: center;
-    &-inner{
+    &-inner {
         font-size: 24px;
     }
     & p {
