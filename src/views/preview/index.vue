@@ -1,35 +1,51 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { Loading } from '@element-plus/icons-vue'
+</script>
 
 <template>
-    <router-view></router-view>
+    <router-view v-slot="{ Component }">
+        <template v-if="Component">
+            <transition mode="out-in">
+                <suspense>
+                    <!-- 主要内容 -->
+                    <component :is="Component"></component>
+                    <!-- 加载中状态 -->
+                    <template #fallback>
+                        <div class="preview-loading">
+                            <div>
+                                <Loading class="spin" />
+                                <p>加载中...</p>
+                            </div>
+                        </div>
+                    </template>
+                </suspense>
+            </transition>
+        </template>
+    </router-view>
 </template>
 
 <style scoped lang="scss">
 .preview {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    position: relative;
-    &-header {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-    }
-    &-footer {
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        font-size: 12px;
-    }
-    &-body {
-        padding: 28px 0 20px;
+    &-loading {
+        width: 100vw;
+        height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        align-content: center;
-        height: 100%;
+        background-color: rgba(0, 0, 0, 0.3);
+        color: white;
+        & .spin {
+            font-size: 40px;
+            animation: spin 1.4s linear infinite;
+        }
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
     }
 }
 </style>

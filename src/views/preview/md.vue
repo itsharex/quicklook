@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { readTextFile } from '@tauri-apps/plugin-fs'
+import LayoutPreview from '@/components/layout-preview.vue'
 import MarkdownIt from 'markdown-it'
 import Shiki from '@shikijs/markdown-it'
 import { useRoute } from 'vue-router'
@@ -28,23 +29,18 @@ const content = ref<string>()
 onMounted(async () => {
     const val = route?.query?.path as string
     console.log('path', val)
-    const ctx = await readTextFile(val)
-
-    content.value = md.render(ctx || '')
+    const text = await readTextFile(val)
+    const ctx = md.render(text || '')
+    content.value = ctx
 })
 </script>
 
 <template>
-    <Suspense>
-        <LayoutPreview :file="file">
-            <div class="md-support">
-                <div class="md-support-inner" id="markdown-body" v-html="content"></div>
-            </div>
-        </LayoutPreview>
-        <template #callback>
-            <div>Loading...</div>
-        </template>
-    </Suspense>
+    <LayoutPreview :file="file">
+        <div class="md-support">
+            <div class="md-support-inner" id="markdown-body" v-html="content"></div>
+        </div>
+    </LayoutPreview>
 </template>
 
 <style scoped lang="scss">
