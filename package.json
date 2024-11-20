@@ -1,6 +1,7 @@
 {
   "name": "quicklook",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "description": "Windows 平台的文件预览工具",
   "private": true,
   "type": "module",
   "scripts": {
