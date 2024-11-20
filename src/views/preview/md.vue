@@ -27,7 +27,8 @@ const file = ref<FileInfo>()
 const content = ref<string>()
 
 onMounted(async () => {
-    const val = route?.query?.path as string
+    file.value = route?.query as unknown as FileInfo
+    const val = file.value.path as string
     console.log('path', val)
     const text = await readTextFile(val)
     const ctx = md.render(text || '')
