@@ -1,8 +1,8 @@
 [package]
 name = "app"
-version = "0.2.0"
+version = "0.3.0"
 description = "Windows 平台的文件预览工具"
-authors = ["you"]
+authors = ["GuoJikun <guojikun486546@163.com>"]
 license = ""
 repository = "https://github.com/GuoJikun/quicklook.git"
 homepage = "https://github.com/GuoJikun/quicklook"
