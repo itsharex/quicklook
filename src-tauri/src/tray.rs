@@ -1,7 +1,7 @@
 use tauri::{
     menu::{MenuBuilder, MenuItem, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    App, Emitter, Manager
+    App, Emitter, Manager,
 };
 #[path = "updater.rs"]
 mod updater;
@@ -49,8 +49,6 @@ pub fn create_tray(app: &mut App) -> tauri::Result<()> {
                     let _ = webview_window.set_title("设置");
                     let _ = webview_window.show();
                 }
-
-                
             }
             // Add more events here
             _ => {}

@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
-use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct File {
@@ -33,21 +33,21 @@ impl File {
     pub fn get_extension(&self) -> String {
         self.extension.clone()
     }
-
 }
-
 
 pub fn get_file_info(path: &str) -> Option<File> {
     let file_path = Path::new(path);
     let path_str = path.to_string();
 
     // 获取文件扩展名，如果没有扩展名，默认使用 "txt"
-    let extension = file_path.extension().map_or("txt".to_string(), |ext| ext.to_string_lossy().into_owned());
+    let extension = file_path
+        .extension()
+        .map_or("txt".to_string(), |ext| ext.to_string_lossy().into_owned());
 
     // 根据扩展名从映射表中获取文件类型
     match file_type_mapping().get(extension.as_str()) {
         Some(file_type) => Some(File::new(file_type, path_str, extension)),
-        None => None,  // 如果没有匹配的文件类型，返回 None
+        None => None, // 如果没有匹配的文件类型，返回 None
     }
 }
 
@@ -186,5 +186,3 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
 
     map
 }
-
-

@@ -194,7 +194,7 @@ onMounted(async () => {
         background-color: var(--bgColor-default);
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif,
             'Apple Color Emoji', 'Segoe UI Emoji';
-        font-size: 14px;
+        font-size: 13px;
         line-height: 1.5;
         word-wrap: break-word;
         scroll-behavior: auto !important;
