@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Dismiss20Regular, Maximize20Regular, Open20Regular } from '@vicons/fluent'
+import { Dismiss20Regular, Maximize20Regular, Open20Regular, Apps20Regular } from '@vicons/fluent'
 
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { open } from '@tauri-apps/plugin-shell'
 import type { FileInfo } from '@/utils/typescript'
+import { invoke } from '@tauri-apps/api/core'
 
 interface LayoutHeaderProps {
     logo?: string
@@ -38,6 +39,14 @@ const openByDefault = async () => {
         console.log(result)
     }
 }
+
+const openWith = async () => {
+    const path = props.file?.path
+    console.log(props.file)
+    if (path) {
+        await invoke('show_open_with_dialog', { path })
+    }
+}
 </script>
 
 <template>
@@ -56,6 +65,9 @@ const openByDefault = async () => {
         <div class="layout-header-operate">
             <div class="layout-header-operate-item" @click="openByDefault" title="使用默认程序打开">
                 <n-icon><Open20Regular /></n-icon>
+            </div>
+            <div class="layout-header-operate-item" @click="openWith" title="推荐打开程序列表">
+                <n-icon><Apps20Regular /></n-icon>
             </div>
             <div class="layout-header-operate-item" @click="handleMax" title="最大化">
                 <n-icon><Maximize20Regular /></n-icon>
