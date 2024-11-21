@@ -115,9 +115,12 @@ impl Selected {
 
                 let shell_view = shell_browser.QueryActiveShellView().unwrap();
                 let shell_items = shell_view
-                    .GetItemObject::<IShellItemArray>(SVGIO_SELECTION)
-                    .unwrap();
+                    .GetItemObject::<IShellItemArray>(SVGIO_SELECTION);
 
+                if shell_items.is_err() {
+                    continue;
+                }
+                let shell_items = shell_items.unwrap();
                 let count = shell_items.GetCount().unwrap_or_default();
                 for i in 0..count {
                     let shell_item = shell_items.GetItemAt(i).unwrap();
