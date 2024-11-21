@@ -1,8 +1,7 @@
 use std::sync::mpsc;
 use std::thread;
 use tauri::{
-    webview::PageLoadEvent, AppHandle, Emitter, Error as TauriError, Event, EventTarget, Listener,
-    Manager, WebviewUrl, WebviewWindowBuilder,
+    webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl, WebviewWindowBuilder,
 };
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
@@ -322,6 +321,7 @@ impl PreviewFile {
                         "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
                         "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
                         "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
+                        "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
                         _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
                     };
 
@@ -372,6 +372,7 @@ impl PreviewFile {
                                             "/preview/code".to_string(),
                                             file_info.clone(),
                                         ),
+                                        "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
                                         _ => WebRoute::new(
                                             "/preview/not-support".to_string(),
                                             file_info.clone(),

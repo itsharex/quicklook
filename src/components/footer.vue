@@ -39,6 +39,7 @@ watch(
     align-content: center;
     font-size: 12px;
     gap: 12px;
+    user-select: none;
     &-item {
         zoom: 0.8;
     }

@@ -16,6 +16,11 @@ const router = createRouter({
             component: previewView,
             children: [
                 {
+                    path: '/preview/not-support',
+                    name: 'previewNotSupport',
+                    component: () => import('@/views/preview/not-support.vue'),
+                },
+                {
                     path: '/preview/video',
                     name: 'previewVideo',
                     component: () => import('@/views/preview/video.vue'),
@@ -51,9 +56,9 @@ const router = createRouter({
                     component: () => import('@/views/preview/text.vue'),
                 },
                 {
-                    path: '/preview/not-support',
-                    name: 'previewNotSupport',
-                    component: () => import('@/views/preview/not-support.vue'),
+                    path: '/preview/book',
+                    name: 'previewBook',
+                    component: () => import('@/views/preview/book.vue'),
                 },
             ],
         },
