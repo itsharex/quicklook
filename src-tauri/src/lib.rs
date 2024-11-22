@@ -38,10 +38,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![command::show_open_with_dialog])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
-        .run(|_handle, event| match event {
-            tauri::RunEvent::ExitRequested { api, .. } => {
-                api.prevent_exit();
+        .run(|_handle, event| {
+            if let tauri::RunEvent::ExitRequested { api, code, .. } = event {
+                if code.is_none() {
+                    api.prevent_exit();
+                }
             }
-            _ => {}
         });
 }
