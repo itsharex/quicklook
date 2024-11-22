@@ -39,6 +39,10 @@ pub fn get_file_info(path: &str) -> Option<File> {
     let file_path = Path::new(path);
     let path_str = path.to_string();
 
+    // 如果不是文件则返回 None
+    if file_path.is_file() == false {
+        return None;
+    }
     // 获取文件扩展名，如果没有扩展名，默认使用 "txt"
     let extension = file_path
         .extension()
