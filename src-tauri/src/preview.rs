@@ -1,4 +1,4 @@
-use std::sync::mpsc;
+use std::{sync::mpsc};
 use std::thread;
 use tauri::{
     webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl, WebviewWindowBuilder,
@@ -236,10 +236,12 @@ impl WebRoute {
         url.push_str("?");
         url.push_str(
             format!(
-                "file_type={}&path={}&extension={}",
+                "file_type={}&path={}&extension={}&size={}&last_modified={}",
                 self.query.get_file_type(),
                 urlencoding::encode(&self.query.get_path()),
-                self.query.get_extension()
+                self.query.get_extension(),
+                self.query.get_size(),
+                self.query.get_last_modified()
             )
             .as_str(),
         );
@@ -306,11 +308,13 @@ impl PreviewFile {
     pub fn preview_file(app: AppHandle) -> Result<(), TauriError> {
         let file_path = Selected::new();
         if file_path.is_some() {
-            let file_info = get_file_info(&file_path.unwrap());
+            let file_path = file_path.unwrap();
+            let file_info = get_file_info(&file_path);
 
             if file_info.is_none() {
                 return Ok(());
             }
+
             let file_info = file_info.unwrap();
             match app.get_webview_window("preview") {
                 Some(window) => {

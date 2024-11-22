@@ -36,6 +36,7 @@ const init = (path: string) => {
 }
 onMounted(() => {
     fileInfo.value = route.query as unknown as FileInfo
+    console.log(fileInfo.value)
     init(convertFileSrc(fileInfo.value.path))
 })
 </script>

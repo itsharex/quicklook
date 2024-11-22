@@ -1,31 +1,18 @@
 <script setup lang="ts">
-import { watch, ref } from 'vue'
-import { lstat, type FileInfo } from '@tauri-apps/plugin-fs'
-import type { FileInfo as File } from '@/utils/typescript'
+import type { FileInfo } from '@/utils/typescript'
+import { formatBytes } from '@/utils/index'
 
 interface Props {
-    file?: File
+    file?: FileInfo
 }
-const props = defineProps<Props>()
-
-const fileInfo = ref<FileInfo>()
-
-watch(
-    () => props.file,
-    async (val, oldVal) => {
-        if (val?.path !== oldVal?.path || !oldVal) {
-            fileInfo.value = await lstat(val?.path as string)
-            // console.log(fileInfo.value, file)
-        }
-    },
-)
+const { file } = defineProps<Props>()
 </script>
 
 <template>
     <div class="footer">
-        <span class="footer-item">文件类型：{{ props.file?.file_type }}</span>
-        <span class="footer-item">文件格式：{{ props.file?.extension }}</span>
-        <span class="footer-item">文件大小：{{ fileInfo?.size }}</span>
+        <span class="footer-item">文件类型：{{ file?.file_type }}</span>
+        <span class="footer-item">文件格式：{{ file?.extension }}</span>
+        <span class="footer-item">文件大小：{{ formatBytes(file?.size as number) }}</span>
     </div>
 </template>
 

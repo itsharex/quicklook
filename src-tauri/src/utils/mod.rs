@@ -1,21 +1,27 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::os::windows::fs::MetadataExt;
 use std::path::Path;
+
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct File {
     file_type: String,
     path: String,
     extension: String,
+    size: u64,
+    last_modified: u64,
 }
 
 impl File {
     // 构造 File 实例
-    fn new(file_type: &str, path: String, extension: String) -> File {
+    fn new(file_type: &str, path: String, extension: String, size: u64, last_modified: u64,) -> File {
         File {
             file_type: file_type.to_string(),
             path,
             extension,
+            size,
+            last_modified,
         }
     }
 
@@ -33,6 +39,16 @@ impl File {
     pub fn get_extension(&self) -> String {
         self.extension.clone()
     }
+
+    // 获取文件大小
+    pub fn get_size(&self) -> u64 {
+        self.size
+    }
+
+    // 获取文件最后修改时间
+    pub fn get_last_modified(&self) -> u64 {
+        self.last_modified
+    }
 }
 
 pub fn get_file_info(path: &str) -> Option<File> {
@@ -48,9 +64,13 @@ pub fn get_file_info(path: &str) -> Option<File> {
         .extension()
         .map_or("txt".to_string(), |ext| ext.to_string_lossy().into_owned());
 
+
+    let metadata = file_path.metadata().unwrap();
+
     // 根据扩展名从映射表中获取文件类型
     match file_type_mapping().get(extension.as_str()) {
-        Some(file_type) => Some(File::new(file_type, path_str, extension)),
+        Some(file_type) => Some(File::new(file_type, path_str, extension, metadata.file_size(), metadata.last_write_time()),
+        ),
         None => None, // 如果没有匹配的文件类型，返回 None
     }
 }
