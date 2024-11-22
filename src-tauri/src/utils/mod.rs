@@ -59,12 +59,12 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("markdown", "Markdown");
     map.insert("md", "Markdown");
     // DOC 文件
-    map.insert("doc", "Doc");
-    map.insert("docx", "Doc");
-    map.insert("xls", "Doc");
-    map.insert("xlsx", "Doc");
-    map.insert("ppt", "Doc");
-    map.insert("pptx", "Doc");
+    // map.insert("doc", "Doc");
+    // map.insert("docx", "Doc");
+    // map.insert("xls", "Doc");
+    // map.insert("xlsx", "Doc");
+    // map.insert("ppt", "Doc");
+    // map.insert("pptx", "Doc");
 
     // 字体文件
     map.insert("ttf", "Font");
@@ -134,17 +134,17 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("mka", "Audio");
 
     // 压缩文件
-    map.insert("zip", "Archive");
-    map.insert("rar", "Archive");
-    map.insert("7z", "Archive");
+    // map.insert("zip", "Archive");
+    // map.insert("rar", "Archive");
+    // map.insert("7z", "Archive");
 
     // 应用程序文件
-    map.insert("exe", "App");
-    map.insert("dmg", "App");
-    map.insert("deb", "App");
-    map.insert("rpm", "App");
-    map.insert("apk", "App");
-    map.insert("appimage", "App");
+    // map.insert("exe", "App");
+    // map.insert("dmg", "App");
+    // map.insert("deb", "App");
+    // map.insert("rpm", "App");
+    // map.insert("apk", "App");
+    // map.insert("appimage", "App");
 
     // 代码文件
     map.insert("cpp", "Code");
