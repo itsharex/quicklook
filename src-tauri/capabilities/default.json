@@ -40,6 +40,18 @@
           "path": "**"
         }
       ]
+    },
+    {
+      "identifier": "shell:allow-open",
+      "allow": [
+        {
+          "name": "open",
+          "args": [
+            "**"
+          ],
+          "cmd": ""
+        }
+      ]
     }
   ]
 }

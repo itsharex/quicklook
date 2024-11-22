@@ -13,11 +13,11 @@ const props = defineProps<Props>()
 
 <template>
     <div class="preview">
-        <Header class="preview-header" />
+        <Header class="preview-header" :file="props.file" />
         <div class="preview-body" v-loading="props.loading">
             <slot></slot>
         </div>
-        <Footer :file="props.file" class="preview-footer" />
+        <Footer class="preview-footer" :file="props.file" />
     </div>
 </template>
 

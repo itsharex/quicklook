@@ -94,3 +94,24 @@ export class Type {
         return Type.get(val) === 'bigint'
     }
 }
+/**
+ * 格式化字节大小
+ * @param size 字节大小
+ * @returns
+ */
+export const formatBytes = (size: number): string => {
+    const KB = 1024
+    const MB = KB * 1024
+    const GB = MB * 1024
+    const TB = GB * 1024
+
+    if (size < MB) {
+        return `${(size / KB).toFixed(2)} KB`
+    } else if (size < GB) {
+        return `${(size / MB).toFixed(2)} MB`
+    } else if (size < TB) {
+        return `${(size / GB).toFixed(2)} GB`
+    } else {
+        return `${(size / TB).toFixed(2)} TB`
+    }
+}

@@ -27,7 +27,8 @@ const file = ref<FileInfo>()
 const content = ref<string>()
 
 onMounted(async () => {
-    const val = route?.query?.path as string
+    file.value = route?.query as unknown as FileInfo
+    const val = file.value.path as string
     console.log('path', val)
     const text = await readTextFile(val)
     const ctx = md.render(text || '')
@@ -193,7 +194,7 @@ onMounted(async () => {
         background-color: var(--bgColor-default);
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif,
             'Apple Color Emoji', 'Segoe UI Emoji';
-        font-size: 14px;
+        font-size: 13px;
         line-height: 1.5;
         word-wrap: break-word;
         scroll-behavior: auto !important;

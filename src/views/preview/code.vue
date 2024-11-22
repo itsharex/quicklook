@@ -53,9 +53,10 @@ onMounted(async () => {
         height: 100%;
         overflow: auto;
         padding: 12px 24px;
-        font-size: 14px;
+        font-size: 13px;
         & :deep(pre code) {
             font-family: 'Courier New', Courier, monospace;
+            line-height: 1.2em;
         }
     }
 }

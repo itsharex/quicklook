@@ -1,21 +1,27 @@
-use std::collections::HashMap;
-use std::path::Path;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::os::windows::fs::MetadataExt;
+use std::path::Path;
+
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct File {
     file_type: String,
     path: String,
     extension: String,
+    size: u64,
+    last_modified: u64,
 }
 
 impl File {
     // 构造 File 实例
-    fn new(file_type: &str, path: String, extension: String) -> File {
+    fn new(file_type: &str, path: String, extension: String, size: u64, last_modified: u64,) -> File {
         File {
             file_type: file_type.to_string(),
             path,
             extension,
+            size,
+            last_modified,
         }
     }
 
@@ -34,20 +40,38 @@ impl File {
         self.extension.clone()
     }
 
-}
+    // 获取文件大小
+    pub fn get_size(&self) -> u64 {
+        self.size
+    }
 
+    // 获取文件最后修改时间
+    pub fn get_last_modified(&self) -> u64 {
+        self.last_modified
+    }
+}
 
 pub fn get_file_info(path: &str) -> Option<File> {
     let file_path = Path::new(path);
     let path_str = path.to_string();
 
+    // 如果不是文件则返回 None
+    if file_path.is_file() == false {
+        return None;
+    }
     // 获取文件扩展名，如果没有扩展名，默认使用 "txt"
-    let extension = file_path.extension().map_or("txt".to_string(), |ext| ext.to_string_lossy().into_owned());
+    let extension = file_path
+        .extension()
+        .map_or("txt".to_string(), |ext| ext.to_string_lossy().into_owned());
+
+
+    let metadata = file_path.metadata().unwrap();
 
     // 根据扩展名从映射表中获取文件类型
     match file_type_mapping().get(extension.as_str()) {
-        Some(file_type) => Some(File::new(file_type, path_str, extension)),
-        None => None,  // 如果没有匹配的文件类型，返回 None
+        Some(file_type) => Some(File::new(file_type, path_str, extension, metadata.file_size(), metadata.last_write_time()),
+        ),
+        None => None, // 如果没有匹配的文件类型，返回 None
     }
 }
 
@@ -59,12 +83,12 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("markdown", "Markdown");
     map.insert("md", "Markdown");
     // DOC 文件
-    map.insert("doc", "Doc");
-    map.insert("docx", "Doc");
-    map.insert("xls", "Doc");
-    map.insert("xlsx", "Doc");
-    map.insert("ppt", "Doc");
-    map.insert("pptx", "Doc");
+    // map.insert("doc", "Doc");
+    // map.insert("docx", "Doc");
+    // map.insert("xls", "Doc");
+    // map.insert("xlsx", "Doc");
+    // map.insert("ppt", "Doc");
+    // map.insert("pptx", "Doc");
 
     // 字体文件
     map.insert("ttf", "Font");
@@ -134,17 +158,17 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("mka", "Audio");
 
     // 压缩文件
-    map.insert("zip", "Archive");
-    map.insert("rar", "Archive");
-    map.insert("7z", "Archive");
+    // map.insert("zip", "Archive");
+    // map.insert("rar", "Archive");
+    // map.insert("7z", "Archive");
 
     // 应用程序文件
-    map.insert("exe", "App");
-    map.insert("dmg", "App");
-    map.insert("deb", "App");
-    map.insert("rpm", "App");
-    map.insert("apk", "App");
-    map.insert("appimage", "App");
+    // map.insert("exe", "App");
+    // map.insert("dmg", "App");
+    // map.insert("deb", "App");
+    // map.insert("rpm", "App");
+    // map.insert("apk", "App");
+    // map.insert("appimage", "App");
 
     // 代码文件
     map.insert("cpp", "Code");
@@ -186,5 +210,3 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
 
     map
 }
-
-

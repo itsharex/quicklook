@@ -1,10 +1,13 @@
 use tauri::{
     menu::{MenuBuilder, MenuItem, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    App, Emitter, Manager
+    App, Emitter, Manager,
 };
 #[path = "updater.rs"]
 mod updater;
+
+#[path = "helper.rs"]
+mod helper;
 
 pub fn create_tray(app: &mut App) -> tauri::Result<()> {
     let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
@@ -42,14 +45,10 @@ pub fn create_tray(app: &mut App) -> tauri::Result<()> {
             "setting" => {
                 println!("Setting");
                 // 打开设置窗口
-                if let Some(webview_window) = app.get_webview_window("main") {
-                    let _ = webview_window.center();
+                if let Ok(webview_window) = helper::get_webview_window(app, "main", "/settings") {
                     let _ = webview_window.set_title("设置");
-                    let _ = webview_window.eval("window.location.href = '/settings'");
                     let _ = webview_window.show();
                 }
-
-                
             }
             // Add more events here
             _ => {}

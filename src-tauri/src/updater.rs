@@ -1,6 +1,6 @@
 use tauri::AppHandle;
-use tauri_plugin_updater::UpdaterExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
+use tauri_plugin_updater::UpdaterExt;
 
 pub async fn update(app: &AppHandle) -> tauri_plugin_updater::Result<()> {
     let checked = app.updater()?.check().await?;
@@ -28,7 +28,8 @@ pub async fn update(app: &AppHandle) -> tauri_plugin_updater::Result<()> {
         }
         None => {
             app.dialog()
-                .message("没有可用更新").kind(MessageDialogKind::Warning)
+                .message("没有可用更新")
+                .kind(MessageDialogKind::Warning)
                 .title("更新")
                 .blocking_show();
         }
