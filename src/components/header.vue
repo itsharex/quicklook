@@ -67,16 +67,11 @@ const pin = async () => {
 
 <template>
     <div class="layout-header" data-tauri-drag-region>
-        <div class="layout-header-extra">
-            <div class="no-seleced">
-                <slot name="logo">
-                    <img v-if="props.logo" :src="logo" alt="logo" />
-                </slot>
-                <h1 class="layout-header-title">{{ props.title }}</h1>
-            </div>
-            <div>
-                <slot name="menu"></slot>
-            </div>
+        <div class="layout-header-extra no-seleced">
+            <slot name="logo">
+                <img v-if="props.logo" :src="logo" alt="logo" />
+            </slot>
+            <h1 class="layout-header-title">{{ props?.file?.name || props.title }}</h1>
         </div>
         <div class="layout-header-operate no-selected">
             <div class="layout-header-operate-item" @click="pin" :title="`${pined ? '取消固定' : '固定'}`">
@@ -91,7 +86,7 @@ const pin = async () => {
             <div class="layout-header-operate-item" @click="handleMax" title="最大化">
                 <n-icon :size="16"><Maximize16Regular /></n-icon>
             </div>
-            <div class="layout-header-operate-item" @click="handleClose" title="关闭">
+            <div class="layout-header-operate-item is-close" @click="handleClose" title="关闭">
                 <n-icon :size="16"><Dismiss16Regular /></n-icon>
             </div>
         </div>
@@ -106,7 +101,7 @@ const pin = async () => {
     top: 0;
     left: 0;
     height: 28px;
-    font-size: 12px;
+    font-size: 1.2rem;
     background-color: rgb(239, 244, 249);
     gap: 12px;
     :deep(i.n-icon) {
@@ -114,38 +109,43 @@ const pin = async () => {
         pointer-events: none;
     }
     &-extra {
-        display: flex;
+        display: inline-flex;
         justify-content: flex-start;
         align-items: center;
         padding: 0 12px;
         height: 100%;
+        flex: auto;
     }
 
     &-title {
-        font-weight: 500;
-        font-size: 12px;
+        font-weight: 400;
+        font-size: 1.2rem;
     }
     &-operate {
-        display: flex;
+        display: inline-flex;
         justify-content: flex-end;
         align-items: center;
         height: 100%;
-        font-size: 20px;
+        font-size: 2rem;
+        flex: 0 0 50%;
         &-item {
             cursor: pointer;
-            width: 2em;
-            font-size: 1em;
+            flex: 0 0 4rem;
+            min-width: 4rem;
+            font-size: inherit;
             color: currentColor;
             display: inline-flex;
             justify-content: center;
             align-items: center;
             height: 100%;
             &:hover {
-                background-color: rgba(0, 0, 0, 0.1);
+                background-color: rgba(0, 0, 0, 0.15);
             }
-            &:last-child:hover {
-                background-color: #f56c6c;
-                color: white;
+            &.is-close {
+                &:hover {
+                    background-color: #f12724;
+                    color: white;
+                }
             }
         }
     }

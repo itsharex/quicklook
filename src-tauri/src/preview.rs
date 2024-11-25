@@ -1,4 +1,4 @@
-use std::{sync::mpsc};
+use std::sync::mpsc;
 use std::thread;
 use tauri::{
     webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl, WebviewWindowBuilder,
@@ -236,12 +236,13 @@ impl WebRoute {
         url.push_str("?");
         url.push_str(
             format!(
-                "file_type={}&path={}&extension={}&size={}&last_modified={}",
+                "file_type={}&path={}&extension={}&size={}&last_modified={}&name={}",
                 self.query.get_file_type(),
                 urlencoding::encode(&self.query.get_path()),
                 self.query.get_extension(),
                 self.query.get_size(),
-                self.query.get_last_modified()
+                self.query.get_last_modified(),
+                self.query.get_name()
             )
             .as_str(),
         );
