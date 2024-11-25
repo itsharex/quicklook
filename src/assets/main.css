@@ -2,7 +2,8 @@
 
 #app {
     height: 100vh;
-    width: 100vh;
+    width: 100vw;
+    overflow: auto;
 }
 
 .no-seleced {
