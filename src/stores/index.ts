@@ -4,6 +4,7 @@ interface MainState {
     audio: Array<string>
     audioChecked: Array<string>
     video: Array<string>
+    videoChecked: Array<string>
 }
 
 export const useMainStore = defineStore('main', {
@@ -12,6 +13,7 @@ export const useMainStore = defineStore('main', {
             audio: [],
             audioChecked: [],
             video: [],
+            videoChecked: [],
         }
     },
 })

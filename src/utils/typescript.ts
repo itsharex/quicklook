@@ -4,4 +4,5 @@ export interface FileInfo {
     extension: string
     size: number
     last_modified: number
+    name: string
 }

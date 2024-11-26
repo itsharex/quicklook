@@ -13,3 +13,15 @@ pub fn show_open_with_dialog(app: AppHandle, path: &str) {
     }
     
 }
+
+
+#[command]
+pub fn archive(path: &str, mode: &str) -> Result<Vec<helper::Extract>, String> {
+  match mode {
+    "zip" => helper::Extract::zip(path).map_err(|e| e.to_string()),
+    _ => {
+      Err("Not Support".to_string())
+    }
+      
+  }
+}

@@ -60,6 +60,11 @@ const router = createRouter({
                     name: 'previewBook',
                     component: () => import('@/views/preview/book.vue'),
                 },
+                {
+                    path: '/preview/archive',
+                    name: 'previewArchive',
+                    component: () => import('@/views/preview/archive.vue'),
+                },
             ],
         },
         {

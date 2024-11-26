@@ -1,4 +1,4 @@
-use std::{sync::mpsc};
+use std::sync::mpsc;
 use std::thread;
 use tauri::{
     webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl, WebviewWindowBuilder,
@@ -236,12 +236,13 @@ impl WebRoute {
         url.push_str("?");
         url.push_str(
             format!(
-                "file_type={}&path={}&extension={}&size={}&last_modified={}",
+                "file_type={}&path={}&extension={}&size={}&last_modified={}&name={}",
                 self.query.get_file_type(),
                 urlencoding::encode(&self.query.get_path()),
                 self.query.get_extension(),
                 self.query.get_size(),
-                self.query.get_last_modified()
+                self.query.get_last_modified(),
+                self.query.get_name()
             )
             .as_str(),
         );
@@ -326,6 +327,7 @@ impl PreviewFile {
                         "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
                         "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
                         "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
+                        "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
                         _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
                     };
 
@@ -352,31 +354,14 @@ impl PreviewFile {
                             match payload.event() {
                                 PageLoadEvent::Finished => {
                                     let route = match file_info.get_file_type().as_str() {
-                                        "Markdown" => WebRoute::new(
-                                            "/preview/md".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Text" => WebRoute::new(
-                                            "/preview/text".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Image" => WebRoute::new(
-                                            "/preview/image".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Video" => WebRoute::new(
-                                            "/preview/video".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Font" => WebRoute::new(
-                                            "/preview/font".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Code" => WebRoute::new(
-                                            "/preview/code".to_string(),
-                                            file_info.clone(),
-                                        ),
+                                        "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
+                                        "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
+                                        "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
+                                        "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
+                                        "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
+                                        "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
                                         "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
+                                        "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
                                         _ => WebRoute::new(
                                             "/preview/not-support".to_string(),
                                             file_info.clone(),

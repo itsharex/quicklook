@@ -11,17 +11,19 @@ pub struct File {
     extension: String,
     size: u64,
     last_modified: u64,
+    name: String,
 }
 
 impl File {
     // 构造 File 实例
-    fn new(file_type: &str, path: String, extension: String, size: u64, last_modified: u64,) -> File {
+    fn new(file_type: &str, path: String, extension: String, size: u64, last_modified: u64, name: String) -> File {
         File {
             file_type: file_type.to_string(),
             path,
             extension,
             size,
             last_modified,
+            name
         }
     }
 
@@ -49,6 +51,11 @@ impl File {
     pub fn get_last_modified(&self) -> u64 {
         self.last_modified
     }
+
+    // 获取文件名
+    pub fn get_name(&self) -> String {
+        self.name.clone()
+    }
 }
 
 pub fn get_file_info(path: &str) -> Option<File> {
@@ -66,10 +73,13 @@ pub fn get_file_info(path: &str) -> Option<File> {
 
 
     let metadata = file_path.metadata().unwrap();
-
+    let name = match file_path.file_name() {
+        Some(tmp) => tmp.to_string_lossy().into_owned(),
+        None => String::from(""),
+    };
     // 根据扩展名从映射表中获取文件类型
     match file_type_mapping().get(extension.as_str()) {
-        Some(file_type) => Some(File::new(file_type, path_str, extension, metadata.file_size(), metadata.last_write_time()),
+        Some(file_type) => Some(File::new(file_type, path_str, extension, metadata.file_size(), metadata.last_write_time(), name),
         ),
         None => None, // 如果没有匹配的文件类型，返回 None
     }
@@ -158,7 +168,7 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("mka", "Audio");
 
     // 压缩文件
-    // map.insert("zip", "Archive");
+    map.insert("zip", "Archive");
     // map.insert("rar", "Archive");
     // map.insert("7z", "Archive");
 
