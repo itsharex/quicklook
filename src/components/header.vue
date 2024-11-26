@@ -67,13 +67,13 @@ const pin = async () => {
 
 <template>
     <div class="layout-header" data-tauri-drag-region>
-        <div class="layout-header-extra no-seleced">
+        <div class="layout-header-extra no-seleced" data-tauri-drag-region>
             <slot name="logo">
                 <img v-if="props.logo" :src="logo" alt="logo" />
             </slot>
             <h1 class="layout-header-title">{{ props?.file?.name || props.title }}</h1>
         </div>
-        <div class="layout-header-operate no-selected">
+        <div class="layout-header-operate no-selected" data-tauri-drag-region>
             <div class="layout-header-operate-item" @click="pin" :title="`${pined ? '取消固定' : '固定'}`">
                 <n-icon :size="16"><PinOff16Regular v-if="pined" /><Pin16Regular v-else /></n-icon>
             </div>
