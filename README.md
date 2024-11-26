@@ -31,12 +31,50 @@ pnpm tauri dev 运行项目
 pnpm tauri build
 ```
 
-## 支持预览文件
+## TODO
 
-> 未完全完成
+> 带 √ 为已经完成
 
-- Image: svg\png\apng\jpg\jpeg\gif\bmp\webp
-- Markdown: md\markdown
-- Doc: xlsx\xls\csv\ods\tsv\
-- Syntx Highlight: txt\js\c++\h++\
-- Font: ttf\otf\woff\woff2
+- 支持的预览格式
+  - 图片:
+    - [x] svg
+    - [x] png
+    - [x] apng
+    - [x] jpg
+    - [x] jpeg
+    - [x] gif
+    - [x] bmp
+    - [x] webp
+  - Markdown:
+    - [x] md
+    - [x] markdown
+  - 文档:
+    - [ ] xlsx
+    - [ ] xls
+    - [ ] csv
+  - 代码文件(utf8):
+    - [x] html
+    - [x] css
+    - [x] js
+    - [x] ts
+    - [x] c
+    - [x] cpp
+    - [x] rs
+    - [x] py
+    - [x] json
+    - [x] yml
+  - 字体:
+    - [x] ttf
+    - [x] otf
+    - [x] woff
+    - [x] woff2
+  - 书籍:
+    - [x] pdf
+  - 压缩文件:
+    - [x] zip
+    - [ ] rar
+    - [ ] 7z
+- 设置
+  - [ ] 支持格式的选择
+  - [ ] 版本显示以及更新
+  - [ ] 自启动
