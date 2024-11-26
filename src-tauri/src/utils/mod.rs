@@ -168,7 +168,7 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("mka", "Audio");
 
     // 压缩文件
-    // map.insert("zip", "Archive");
+    map.insert("zip", "Archive");
     // map.insert("rar", "Archive");
     // map.insert("7z", "Archive");
 

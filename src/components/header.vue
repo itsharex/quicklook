@@ -28,10 +28,10 @@ const handleClose = () => {
     curWindow.close()
 }
 
-const handleMin = () => {
-    const curWindow = getCurrentWindow()
-    curWindow.minimize()
-}
+// const handleMin = () => {
+//     const curWindow = getCurrentWindow()
+//     curWindow.minimize()
+// }
 
 const handleMax = () => {
     const curWindow = getCurrentWindow()
