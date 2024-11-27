@@ -25,3 +25,14 @@ pub fn archive(path: &str, mode: &str) -> Result<Vec<helper::Extract>, String> {
       
   }
 }
+
+#[command]
+pub fn document(path: &str, mode: &str) -> Result<Vec<helper::DSheet>, String> {
+    match mode {
+        "csv" => helper::Document::csv(path).map_err(|e| e.to_string()),
+        "xlsx" | "xls" => helper::Document::excel(path).map_err(|e| e.to_string()),
+        _ => {
+            Err("Not Support".to_string())
+        }
+    }
+}

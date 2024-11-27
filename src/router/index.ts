@@ -65,6 +65,11 @@ const router = createRouter({
                     name: 'previewArchive',
                     component: () => import('@/views/preview/archive.vue'),
                 },
+                {
+                    path: '/preview/document',
+                    name: 'previewDocument',
+                    component: () => import('@/views/preview/document.vue'),
+                },
             ],
         },
         {

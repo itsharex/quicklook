@@ -1,3 +1,4 @@
+use calamine::Reader;
 use serde::Serialize;
 use tauri::{
     webview::WebviewWindow, AppHandle, Error as TError, Manager, WebviewUrl, WebviewWindowBuilder,
@@ -117,4 +118,56 @@ impl Extract {
         Ok(target)
     }
     
+}
+
+#[allow(unused)]
+#[derive(Debug, Clone, Serialize)]
+pub struct DSheet {
+    name: String,
+    rows: Vec<Vec<String>>
+}
+
+#[allow(unused)]
+pub struct Document;
+
+#[allow(unused)]
+impl Document {
+    pub fn excel(file_path: &str) -> Result<Vec<DSheet>,  Box<dyn std::error::Error>> {
+        let mut workbook = calamine::open_workbook_auto(file_path)?;
+        let sheets = workbook.sheet_names().to_owned();
+        let mut target: Vec<DSheet> = Vec::new();
+        
+        for sheet in sheets {
+            let range = workbook.worksheet_range(&sheet)?;
+            let mut rows = Vec::new();
+            for row in range.rows() {
+                let mut cell_list: Vec<String> = Vec::new();
+                for cell in row.iter() {
+                    cell_list.push(cell.to_string());
+                }
+                rows.push(cell_list);
+            }
+            let map = DSheet {
+                name: sheet,
+                rows
+            };
+            
+            target.push(map);
+        }
+        println!("excel {:?}", target);
+        Ok(target)
+    }
+    pub fn csv(file_path: &str) -> Result<Vec<DSheet>, Box<dyn std::error::Error>> {
+        let file = File::open(file_path)?;
+        let mut rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(file);
+        let target: Vec<DSheet> = Vec::new();
+    
+        // for result in rdr.records() {
+        //     println!("csv record is {:?}", result);
+        //     let record = result?;
+        //     target.push(record);
+        // }
+        println!("csv {:?}", target);
+        Ok(target)
+    }
 }

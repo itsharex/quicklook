@@ -328,6 +328,7 @@ impl PreviewFile {
                         "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
                         "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
                         "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
+                        "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
                         _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
                     };
 
@@ -362,6 +363,7 @@ impl PreviewFile {
                                         "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
                                         "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
                                         "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
+                                        "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
                                         _ => WebRoute::new(
                                             "/preview/not-support".to_string(),
                                             file_info.clone(),

@@ -35,7 +35,7 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![command::show_open_with_dialog, command::archive])
+        .invoke_handler(tauri::generate_handler![command::show_open_with_dialog, command::archive, command::document])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|_handle, event| {

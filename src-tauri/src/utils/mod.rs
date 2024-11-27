@@ -95,8 +95,9 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     // DOC 文件
     // map.insert("doc", "Doc");
     // map.insert("docx", "Doc");
-    // map.insert("xls", "Doc");
-    // map.insert("xlsx", "Doc");
+    map.insert("xls", "Doc");
+    map.insert("xlsx", "Doc");
+    map.insert("csv", "Doc");
     // map.insert("ppt", "Doc");
     // map.insert("pptx", "Doc");
 
