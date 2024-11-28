@@ -19,8 +19,14 @@ pub fn run() {
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
-                    tauri_plugin_log::Builder::default()
+                    tauri_plugin_log::Builder::new()
+                        .target(tauri_plugin_log::Target::new(
+                            tauri_plugin_log::TargetKind::LogDir { file_name: Some("logs".to_string()) }
+                        ))
                         .level(log::LevelFilter::Info)
+                        .max_file_size(50000)
+                        .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
+                        .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
                         .build(),
                 )?;
             }
@@ -35,7 +41,7 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![command::show_open_with_dialog, command::archive])
+        .invoke_handler(tauri::generate_handler![command::show_open_with_dialog, command::archive, command::document])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|_handle, event| {
