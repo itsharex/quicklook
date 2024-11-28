@@ -19,8 +19,14 @@ pub fn run() {
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
-                    tauri_plugin_log::Builder::default()
-                        .level(log::LevelFilter::Info)
+                    tauri_plugin_log::Builder::new()
+                        .target(tauri_plugin_log::Target::new(
+                            tauri_plugin_log::TargetKind::LogDir { file_name: Some("logs".to_string()) }
+                        ))
+                        .level(log::LevelFilter::Warn)
+                        .max_file_size(50000)
+                        .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
+                        .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
                         .build(),
                 )?;
             }
