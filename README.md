@@ -49,8 +49,13 @@ pnpm tauri build
     - [x] md
     - [x] markdown
   - 文档:
-    - [ ] xlsx
-    - [ ] xls
+    - [x] xlsx
+    - [x] xls
+    - [x] xlsm
+    - [x] xlsb
+    - [x] xla
+    - [x] xlam
+    - [x] ods
     - [ ] csv
   - 代码文件(utf8):
     - [x] html

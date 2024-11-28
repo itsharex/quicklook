@@ -49,27 +49,10 @@ onMounted(async () => {
     &-inner {
         width: 100%;
         height: 100%;
-        overflow: auto;
-        padding: 12px;
+        overflow: hidden;
+        padding: 0;
         font-size: 1.4rem;
         font-family: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-        & .custom-row {
-            display: flex;
-            width: 100%;
-            justify-content: space-between;
-            align-items: center;
-            line-height: 4rem;
-            font-size: 12px;
-            &-1 {
-                flex: auto;
-            }
-            &-2 {
-                flex: 0 0 100px;
-            }
-            &-3 {
-                flex: 0 0 160px;
-            }
-        }
     }
 }
 </style>
