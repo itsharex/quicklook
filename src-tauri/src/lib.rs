@@ -23,7 +23,7 @@ pub fn run() {
                         .target(tauri_plugin_log::Target::new(
                             tauri_plugin_log::TargetKind::LogDir { file_name: Some("logs".to_string()) }
                         ))
-                        .level(log::LevelFilter::Warn)
+                        .level(log::LevelFilter::Info)
                         .max_file_size(50000)
                         .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
                         .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
