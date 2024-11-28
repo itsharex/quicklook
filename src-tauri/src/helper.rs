@@ -159,14 +159,20 @@ impl Document {
     pub fn csv(file_path: &str) -> Result<Vec<DSheet>, Box<dyn std::error::Error>> {
         let file = File::open(file_path)?;
         let mut rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(file);
-        let target: Vec<DSheet> = Vec::new();
-    
-        // for result in rdr.records() {
-        //     println!("csv record is {:?}", result);
-        //     let record = result?;
-        //     target.push(record);
-        // }
-        println!("csv {:?}", target);
+        
+        let mut rows : Vec<Vec<String>> = vec![];
+        for result in rdr.records() {
+            let record = result?;
+            let mut cols: Vec<String> = Vec::new();
+            for i in 0..record.len() {
+                cols.push(record[i].to_string());
+            }
+            rows.push(cols);
+        }
+        let target: Vec<DSheet> = vec![DSheet {
+            name: "sheet1".to_string(),
+            rows
+        }];
         Ok(target)
     }
 }
