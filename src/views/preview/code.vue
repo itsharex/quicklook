@@ -17,7 +17,7 @@ const content = ref<string>()
 const loading = ref<boolean>(false)
 
 onMounted(async () => {
-    loading.value = false
+    loading.value = true
     fileInfo.value = route.query as unknown as FileInfo
     const code = await readTextFile(fileInfo.value.path)
     const html = await codeToHtml(code, {
@@ -28,7 +28,7 @@ onMounted(async () => {
         },
     })
     content.value = html
-    loading.value = true
+    loading.value = false
 })
 </script>
 
