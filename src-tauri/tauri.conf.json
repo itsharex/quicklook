@@ -40,7 +40,8 @@
     "shortDescription": "Windows 平台的文件预览工具",
     "createUpdaterArtifacts": true,
     "targets": [
-      "msi"
+      "msi",
+      "nsis"
     ],
     "icon": [
       "icons/32x32.png",
@@ -56,6 +57,10 @@
       },
       "wix": {
         "language": "zh-CN"
+      },
+      "nsis": {
+        "installMode": "both",
+        "installerIcon": "icons/icon.ico"
       }
     }
   },

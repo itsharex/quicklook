@@ -9,6 +9,7 @@
     "fs:default",
     "updater:default",
     "dialog:default",
-    "shell:default"
+    "shell:default",
+    "log:default"
   ]
 }

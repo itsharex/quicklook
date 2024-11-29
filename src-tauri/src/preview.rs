@@ -13,6 +13,7 @@ use windows::{
                 CLSCTX_SERVER, COINIT_APARTMENTTHREADED,
             },
             SystemServices::SFGAO_FILESYSTEM,
+            Variant,
         },
         UI::{
             Input::KeyboardAndMouse,
@@ -61,9 +62,14 @@ impl Selected {
         let mut type_str: Option<String> = None;
         let hwnd_gfw = unsafe { WindowsAndMessaging::GetForegroundWindow() };
         let class_name = helper::get_window_class_name(hwnd_gfw);
+        log::info!("class_name: {}", class_name);
+            
         if class_name.contains("CabinetWClass") {
             type_str = Some("explorer".to_string());
         } else if class_name.contains("Progman") {
+            type_str = Some("desktop".to_string());
+        } else if class_name.contains("WorkerW") {
+            // 兼容 windows 10
             type_str = Some("desktop".to_string());
         }
         type_str
@@ -126,7 +132,7 @@ impl Selected {
 
                     // 如果不是文件对象则继续循环
                     if let Ok(attrs) = shell_item.GetAttributes(SFGAO_FILESYSTEM) {
-                        println!("attrs: {:?}", attrs);
+                        log::info!("attrs: {:?}", attrs);
                         if attrs.0 == 0 {
                             continue;
                         }
@@ -163,10 +169,11 @@ impl Selected {
             let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
             let mut target_path = String::new();
             let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
+            log::info!("hwnd_gfw: {:?}", hwnd_gfw);
             let shell_windows: IShellWindows =
                 CoCreateInstance(&ShellWindows, None, CLSCTX_SERVER).unwrap();
 
-            let pvar_loc: VARIANT = windows::Win32::System::Variant::VariantInit();
+            let pvar_loc: VARIANT = Variant::VariantInit();
 
             // 获取活动窗口
             let mut phwnd: i32 = 0;
@@ -195,7 +202,7 @@ impl Selected {
                 .unwrap();
 
             let phwnd = shell_browser.GetWindow().unwrap();
-
+            log::info!("hwnd_gfw: {:?}, phwnd: {:?}", hwnd_gfw, phwnd);
             if hwnd_gfw.0 != phwnd.0 {
                 CoUninitialize();
                 tx.send(target_path.clone()).unwrap();
