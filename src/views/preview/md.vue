@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { readTextFile } from '@tauri-apps/plugin-fs'
 import LayoutPreview from '@/components/layout-preview.vue'
 import MarkdownIt from 'markdown-it'
 import Shiki from '@shikijs/markdown-it'
 import { useRoute } from 'vue-router'
 import type { FileInfo } from '@/utils/typescript'
+import { readTextFile } from '@/utils'
 
 const route = useRoute()
 
@@ -28,10 +28,10 @@ const content = ref<string>()
 
 onMounted(async () => {
     file.value = route?.query as unknown as FileInfo
-    const val = file.value.path as string
-    console.log('path', val)
-    const text = await readTextFile(val)
-    const ctx = md.render(text || '')
+    const path = file.value.path as string
+    console.log('path', path)
+    const txt = await readTextFile(path)
+    const ctx = md.render(txt)
     content.value = ctx
 })
 </script>

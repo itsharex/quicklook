@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { readTextFile } from '@tauri-apps/plugin-fs'
 import { codeToHtml } from 'shiki'
 import { useRoute } from 'vue-router'
 import type { FileInfo } from '@/utils/typescript'
 import LayoutPreview from '@/components/layout-preview.vue'
+import { readTextFile } from '@/utils'
 
 const route = useRoute()
 
@@ -19,7 +19,9 @@ const loading = ref<boolean>(false)
 onMounted(async () => {
     loading.value = true
     fileInfo.value = route.query as unknown as FileInfo
-    const code = await readTextFile(fileInfo.value.path)
+    const path = fileInfo.value.path as string
+
+    const code = await readTextFile(path)
     const html = await codeToHtml(code, {
         lang: 'javascript',
         themes: {
