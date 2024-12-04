@@ -1,7 +1,8 @@
 use std::sync::mpsc;
 use std::thread;
 use tauri::{
-    webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl, WebviewWindowBuilder,
+    webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl,
+    WebviewWindowBuilder,
 };
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
@@ -63,7 +64,7 @@ impl Selected {
         let hwnd_gfw = unsafe { WindowsAndMessaging::GetForegroundWindow() };
         let class_name = helper::get_window_class_name(hwnd_gfw);
         log::info!("class_name: {}", class_name);
-            
+
         if class_name.contains("CabinetWClass") {
             type_str = Some("explorer".to_string());
         } else if class_name.contains("Progman") {
@@ -119,8 +120,7 @@ impl Selected {
                 }
 
                 let shell_view = shell_browser.QueryActiveShellView().unwrap();
-                let shell_items = shell_view
-                    .GetItemObject::<IShellItemArray>(SVGIO_SELECTION);
+                let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION);
 
                 if shell_items.is_err() {
                     continue;
@@ -334,7 +334,9 @@ impl PreviewFile {
                         "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
                         "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
                         "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
-                        "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
+                        "Archive" => {
+                            WebRoute::new("/preview/archive".to_string(), file_info.clone())
+                        }
                         "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
                         _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
                     };
@@ -362,15 +364,42 @@ impl PreviewFile {
                             match payload.event() {
                                 PageLoadEvent::Finished => {
                                     let route = match file_info.get_file_type().as_str() {
-                                        "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
-                                        "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
-                                        "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
-                                        "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
-                                        "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
-                                        "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
-                                        "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
-                                        "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
-                                        "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
+                                        "Markdown" => WebRoute::new(
+                                            "/preview/md".to_string(),
+                                            file_info.clone(),
+                                        ),
+                                        "Text" => WebRoute::new(
+                                            "/preview/text".to_string(),
+                                            file_info.clone(),
+                                        ),
+                                        "Image" => WebRoute::new(
+                                            "/preview/image".to_string(),
+                                            file_info.clone(),
+                                        ),
+                                        "Video" => WebRoute::new(
+                                            "/preview/video".to_string(),
+                                            file_info.clone(),
+                                        ),
+                                        "Font" => WebRoute::new(
+                                            "/preview/font".to_string(),
+                                            file_info.clone(),
+                                        ),
+                                        "Code" => WebRoute::new(
+                                            "/preview/code".to_string(),
+                                            file_info.clone(),
+                                        ),
+                                        "Book" => WebRoute::new(
+                                            "/preview/book".to_string(),
+                                            file_info.clone(),
+                                        ),
+                                        "Archive" => WebRoute::new(
+                                            "/preview/archive".to_string(),
+                                            file_info.clone(),
+                                        ),
+                                        "Doc" => WebRoute::new(
+                                            "/preview/document".to_string(),
+                                            file_info.clone(),
+                                        ),
                                         _ => WebRoute::new(
                                             "/preview/not-support".to_string(),
                                             file_info.clone(),

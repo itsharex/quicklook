@@ -23,7 +23,7 @@ onMounted(async () => {
 
     const code = await readTextFile(path)
     const html = await codeToHtml(code, {
-        lang: 'javascript',
+        lang: fileInfo.value.extension || 'plaintext',
         themes: {
             light: 'github-light',
             dark: 'github-dark',
@@ -54,8 +54,9 @@ onMounted(async () => {
         width: 100%;
         height: 100%;
         overflow: auto;
-        padding: 12px 24px;
+        padding: 12px 16px;
         font-size: 13px;
+        & :deep(pre),
         & :deep(pre code) {
             font-family: 'Courier New', Courier, monospace;
             line-height: 1.2em;

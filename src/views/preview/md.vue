@@ -1,24 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import LayoutPreview from '@/components/layout-preview.vue'
-import MarkdownIt from 'markdown-it'
-import Shiki from '@shikijs/markdown-it'
 import { useRoute } from 'vue-router'
 import type { FileInfo } from '@/utils/typescript'
 import { readTextFile } from '@/utils'
+import { createMd } from '@/utils/markdown'
 
 const route = useRoute()
 
-const md = new MarkdownIt()
-
-const highlight = await Shiki({
-    themes: {
-        light: 'github-light',
-        dark: 'github-dark',
-    },
-})
-
-md.use(highlight)
+const md = await createMd()
 
 defineOptions({
     name: 'MdSupport',
@@ -945,12 +935,12 @@ onMounted(async () => {
         margin-bottom: var(--base-size-16);
     }
 
-    #markdown-body .highlight pre {
+    #markdown-body pre.shiki {
         margin-bottom: 0;
         word-break: normal;
     }
 
-    #markdown-body .highlight pre,
+    #markdown-body pre.shiki,
     #markdown-body pre {
         padding: var(--base-size-16);
         overflow: auto;
