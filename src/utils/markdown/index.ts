@@ -14,20 +14,18 @@ import markdownItTaskLists from 'markdown-it-task-lists'
 // @ts-expect-error
 import markdownItTocAndAnchor from 'markdown-it-toc-and-anchor'
 // @ts-expect-error
-import markwondItContainer from 'markdown-it-container'
-// @ts-expect-error
 import markdownItKatex from 'markdown-it-katex'
 // @ts-expect-error
 import markdownItTableOfContents from 'markdown-it-table-of-contents'
 
-export const createMd = async (): Promise<MarkdownIt> => {
+import containerPlugin from './plugins/container'
+import { preWrapperPlugin } from './plugins/preWrapper'
+
+const createMd = async (): Promise<MarkdownIt> => {
     const md = new MarkdownIt()
 
     const highlight = await Shiki({
-        themes: {
-            light: 'github-light',
-            dark: 'github-dark',
-        },
+        theme: 'none',
     })
 
     md.use(markdownItAbbr)
@@ -36,7 +34,8 @@ export const createMd = async (): Promise<MarkdownIt> => {
     md.use(markdownItIns)
     md.use(markdownItTaskLists)
     md.use(markdownItTocAndAnchor)
-    md.use(markwondItContainer)
+    containerPlugin(md)
+    preWrapperPlugin(md, { codeCopyButtonTitle: '复制', hasSingleTheme: true })
     md.use(markdownItKatex)
 
     md.use(markdownItTableOfContents)
@@ -44,3 +43,6 @@ export const createMd = async (): Promise<MarkdownIt> => {
     md.use(highlight)
     return md
 }
+
+export default createMd
+export { createMd }
