@@ -415,6 +415,7 @@ impl Default for PreviewFile {
     }
 }
 
+//noinspection ALL
 // 公开一个全局函数来初始化 PreviewFile
 pub fn init_preview_file(handle: AppHandle) {
     let mut preview_file = PreviewFile::default();

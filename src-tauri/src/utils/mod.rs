@@ -223,6 +223,7 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("php", "Code");
     map.insert("h", "Code");
     map.insert("xml", "Code");
+    map.insert("sql", "Code");
 
     // 书籍文件
     map.insert("pdf", "Book");
