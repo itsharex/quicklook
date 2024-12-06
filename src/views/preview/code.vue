@@ -16,20 +16,38 @@ const fileInfo = ref<FileInfo>()
 const content = ref<string>()
 const loading = ref<boolean>(false)
 
+const getLanguage = (extension: string) => {
+    switch (extension) {
+        case 'js':
+        case 'mjs':
+        case 'cjs':
+            return 'javascript'
+        case 'ts':
+        case 'mts':
+        case 'cts':
+            return 'typescript'
+        case 'markdown':
+        case 'md':
+            return 'md'
+        default:
+            return extension || 'plaintext'
+    }
+
+}
+
 onMounted(async () => {
     loading.value = true
     fileInfo.value = route.query as unknown as FileInfo
     const path = fileInfo.value.path as string
 
     const code = await readTextFile(path)
-    const html = await codeToHtml(code, {
-        lang: fileInfo.value.extension || 'plaintext',
+    content.value = await codeToHtml(code, {
+        lang: getLanguage(fileInfo.value.extension),
         themes: {
             light: 'github-light',
             dark: 'github-dark',
         },
     })
-    content.value = html
     loading.value = false
 })
 </script>
