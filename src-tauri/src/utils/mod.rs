@@ -108,6 +108,11 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     // map.insert("docx", "Doc");
     map.insert("xls", "Doc");
     map.insert("xlsx", "Doc");
+    map.insert("xlsm", "Doc");
+    map.insert("xlsb", "Doc");
+    map.insert("xla", "Doc");
+    map.insert("xlam", "Doc");
+    map.insert("ods", "Doc");
     map.insert("csv", "Doc");
     // map.insert("ppt", "Doc");
     // map.insert("pptx", "Doc");
