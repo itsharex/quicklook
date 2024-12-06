@@ -23,8 +23,8 @@ onMounted(async () => {
     const path = file.value.path as string
     console.log('path', path)
     const txt = await readTextFile(path)
-    const ctx = md.render(txt)
-    content.value = ctx
+
+    content.value = md.render(txt)
 })
 </script>
 

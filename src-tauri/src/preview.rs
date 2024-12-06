@@ -258,6 +258,20 @@ impl WebRoute {
     pub fn new(path: String, query: UFile) -> Self {
         Self { path, query }
     }
+    pub fn get_route(type_str: &str, file_info: &UFile) -> WebRoute {
+        match type_str {
+            "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
+            "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
+            "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
+            "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
+            "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
+            "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
+            "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
+            "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
+            "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
+            _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -326,21 +340,9 @@ impl PreviewFile {
             let file_info = file_info.unwrap();
             match app.get_webview_window("preview") {
                 Some(window) => {
-                    let route = match file_info.get_file_type().as_str() {
-                        "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
-                        "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
-                        "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
-                        "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
-                        "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
-                        "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
-                        "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
-                        "Archive" => {
-                            WebRoute::new("/preview/archive".to_string(), file_info.clone())
-                        }
-                        "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
-                        _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
-                    };
-
+                    let type_str = file_info.get_file_type();
+                    let route = WebRoute::get_route(&type_str, &file_info);
+                    
                     let url = route.to_url();
                     let js = format!("window.location.href = '{}'", &url);
                     let _ = window.eval(js.as_str());
@@ -363,48 +365,8 @@ impl PreviewFile {
                         if cur_path == "/preview" {
                             match payload.event() {
                                 PageLoadEvent::Finished => {
-                                    let route = match file_info.get_file_type().as_str() {
-                                        "Markdown" => WebRoute::new(
-                                            "/preview/md".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Text" => WebRoute::new(
-                                            "/preview/text".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Image" => WebRoute::new(
-                                            "/preview/image".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Video" => WebRoute::new(
-                                            "/preview/video".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Font" => WebRoute::new(
-                                            "/preview/font".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Code" => WebRoute::new(
-                                            "/preview/code".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Book" => WebRoute::new(
-                                            "/preview/book".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Archive" => WebRoute::new(
-                                            "/preview/archive".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        "Doc" => WebRoute::new(
-                                            "/preview/document".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                        _ => WebRoute::new(
-                                            "/preview/not-support".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                    };
+                                    let type_str = file_info.get_file_type();
+                                    let route = WebRoute::get_route(&type_str, &file_info);
 
                                     let url = route.to_url();
                                     let js = format!("window.location.href = '{}'", &url);
