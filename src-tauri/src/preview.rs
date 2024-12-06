@@ -342,7 +342,7 @@ impl PreviewFile {
                 Some(window) => {
                     let type_str = file_info.get_file_type();
                     let route = WebRoute::get_route(&type_str, &file_info);
-                    
+
                     let url = route.to_url();
                     let js = format!("window.location.href = '{}'", &url);
                     let _ = window.eval(js.as_str());

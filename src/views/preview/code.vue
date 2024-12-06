@@ -30,7 +30,7 @@ const getLanguage = (extension: string) => {
         case 'md':
             return 'md'
         default:
-            return extension || 'plaintext'
+            return extension || 'plain'
     }
 
 }
