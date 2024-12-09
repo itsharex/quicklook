@@ -6,7 +6,9 @@ import { useRoute } from 'vue-router'
 import type { FileInfo } from '@/utils/typescript'
 import { convertFileSrc } from '@tauri-apps/api/core'
 import * as PDFJS from 'pdfjs-dist'
+import { type DocumentInitParameters } from 'pdfjs-dist/types/src/display/api'
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
+import { info } from '@tauri-apps/plugin-log'
 
 const route = useRoute()
 
@@ -17,17 +19,17 @@ defineOptions({
 const fileInfo = ref<FileInfo>()
 
 const loadDocument = (url: string) => {
-    console.log('loadDocument', PDFJS)
-
     return new Promise((resolve, reject) => {
-        PDFJS.getDocument(url)
+        PDFJS.getDocument({
+            url,
+            cMapUrl: '/pdf/cmaps/',
+            cMapPacked: true,
+        })
             .promise.then((pdf: any) => {
-                console.log('pdf111', pdf)
                 resolve(pdf)
             })
             .catch(e => {
-                console.log('pdf222', e)
-                reject(null)
+                reject(e)
             })
     })
 }
@@ -65,19 +67,20 @@ const canvasRef = ref<HTMLCanvasElement>()
 const pager = ref<number>(1)
 let pdf: any = null
 onMounted(async () => {
-    console.log('onMounted', PDFJS.GlobalWorkerOptions)
-    PDFJS.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs'
+    console.log('BookSupport', PDFJS)
+    PDFJS.GlobalWorkerOptions.workerSrc = '/pdf/pdf.worker.mjs'
+    // PDFJS.CMap.url = '/pdf/cmaps/' // 本地路径
+    // PDFJS.CMap.loaded = true // 如果你使用的是打包的 CMap 文件
     pager.value = 1
     fileInfo.value = route?.query as unknown as FileInfo
     const path = convertFileSrc(fileInfo.value.path)
-    console.log('path', path)
     pdf = await loadDocument(path)
-    console.log('pdf', pdf)
 
     if (pdf) {
         renderPage(pdf, pager.value)
     } else {
-        console.log('pdf is null')
+        info(pdf)
+        console.error(pdf)
     }
 })
 </script>
