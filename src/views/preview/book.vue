@@ -22,9 +22,11 @@ const loadDocument = (url: string) => {
     return new Promise((resolve, reject) => {
         PDFJS.getDocument(url)
             .promise.then((pdf: any) => {
+                console.log('pdf111', pdf)
                 resolve(pdf)
             })
-            .catch(() => {
+            .catch(e => {
+                console.log('pdf222', e)
                 reject(null)
             })
     })
@@ -68,8 +70,9 @@ onMounted(async () => {
     pager.value = 1
     fileInfo.value = route?.query as unknown as FileInfo
     const path = convertFileSrc(fileInfo.value.path)
-    console.log('path', path, fileInfo.value)
+    console.log('path', path)
     pdf = await loadDocument(path)
+    console.log('pdf', pdf)
 
     if (pdf) {
         renderPage(pdf, pager.value)

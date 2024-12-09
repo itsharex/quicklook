@@ -17,22 +17,15 @@ const content = ref<string>()
 const loading = ref<boolean>(false)
 
 const getLanguage = (extension: string) => {
-    switch (extension) {
-        case 'js':
-        case 'mjs':
-        case 'cjs':
-            return 'javascript'
-        case 'ts':
-        case 'mts':
-        case 'cts':
-            return 'typescript'
-        case 'markdown':
-        case 'md':
-            return 'md'
-        default:
-            return extension || 'plain'
+    let ext = extension
+    if (['cjs', 'mjs'].includes(extension)) {
+        ext = 'js'
+    } else if (['cts', 'mts'].includes(extension)) {
+        ext = 'ts'
+    } else if (['markdown'].includes(extension)) {
+        ext = 'md'
     }
-
+    return ext
 }
 
 onMounted(async () => {
@@ -41,8 +34,9 @@ onMounted(async () => {
     const path = fileInfo.value.path as string
 
     const code = await readTextFile(path)
+    const lang = getLanguage(fileInfo.value.extension)
     content.value = await codeToHtml(code, {
-        lang: getLanguage(fileInfo.value.extension),
+        lang: lang,
         themes: {
             light: 'github-light',
             dark: 'github-dark',
