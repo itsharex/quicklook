@@ -4,6 +4,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
+import { error, debug } from '@tauri-apps/plugin-log'
 
 import { NIcon, create } from 'naive-ui'
 const naive = create({
@@ -22,5 +23,12 @@ app.use(naive)
 app.use(ElementPlus, {
     locale: zhCn,
 })
+
+app.config.errorHandler = (err, vm, code) => {
+    error(`[Vue Error]: Instance-${vm}；Error- ${err}Code- ${code}`)
+}
+app.config.warnHandler = (msg, vm, trace) => {
+    debug(`[Vue Warn]: Message-${msg}；Instance-${vm}；Trace- ${trace}`)
+}
 
 app.mount('#app')

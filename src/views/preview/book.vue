@@ -6,7 +6,6 @@ import { useRoute } from 'vue-router'
 import type { FileInfo } from '@/utils/typescript'
 import { convertFileSrc } from '@tauri-apps/api/core'
 import * as PDFJS from 'pdfjs-dist'
-import { type DocumentInitParameters } from 'pdfjs-dist/types/src/display/api'
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import { info } from '@tauri-apps/plugin-log'
 
