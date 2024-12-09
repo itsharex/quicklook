@@ -201,6 +201,7 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("cpp", "Code");
     map.insert("js", "Code");
     map.insert("mjs", "Code");
+    map.insert("cjs", "Code");
     map.insert("ts", "Code");
     map.insert("mts", "Code");
     map.insert("tsx", "Code");
@@ -215,6 +216,8 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("c", "Code");
     map.insert("go", "Code");
     map.insert("vue", "Code");
+    map.insert("svelte", "Code");
+    map.insert("astro", "Code");
     map.insert("jsx", "Code");
     map.insert("json", "Code");
     map.insert("yml", "Code");

@@ -67,12 +67,13 @@ impl Selected {
 
         if class_name.contains("CabinetWClass") {
             type_str = Some("explorer".to_string());
-        } else if class_name.contains("Progman") {
-            type_str = Some("desktop".to_string());
-        } else if class_name.contains("WorkerW") {
-            // 兼容 windows 10
-            type_str = Some("desktop".to_string());
+        } else if class_name.contains("Progman") || class_name.contains("WorkerW") {
+            let defview = unsafe { WindowsAndMessaging::FindWindowExW(hwnd_gfw, None, w!("SHELLDLL_DefView"), None) };
+            if defview.is_ok() {
+                type_str = Some("desktop".to_string());
+            }
         }
+        log::info!("type_str: {:?}", type_str);
         type_str
     }
 
@@ -200,13 +201,7 @@ impl Selected {
                 .unwrap()
                 .QueryService::<IShellBrowser>(&IShellBrowser::IID)
                 .unwrap();
-
-            let phwnd = shell_browser.GetWindow().unwrap();
-            log::info!("hwnd_gfw: {:?}, phwnd: {:?}", hwnd_gfw, phwnd);
-            if hwnd_gfw.0 != phwnd.0 {
-                CoUninitialize();
-                tx.send(target_path.clone()).unwrap();
-            }
+           
             let shell_view = shell_browser.QueryActiveShellView().unwrap();
             let shell_items = shell_view
                 .GetItemObject::<IShellItemArray>(SVGIO_SELECTION)
@@ -278,20 +273,20 @@ impl WebRoute {
 impl PreviewFile {
     // 注册键盘钩子
     pub fn set_keyboard_hook(&mut self) {
-        unsafe {
-            let hook_ex = WindowsAndMessaging::SetWindowsHookExW(
+        let hook_ex = unsafe {
+            WindowsAndMessaging::SetWindowsHookExW(
                 WindowsAndMessaging::WH_KEYBOARD_LL,
                 Some(Self::keyboard_proc), // 使用结构体的键盘回调
                 None,                      // 当前进程实例句柄
                 0,
-            );
-            match hook_ex {
-                Ok(result) => {
-                    self.hook_handle = Some(result);
-                }
-                Err(_) => {
-                    self.hook_handle = None;
-                }
+            )
+        };
+        match hook_ex {
+            Ok(result) => {
+                self.hook_handle = Some(result);
+            }
+            Err(_) => {
+                self.hook_handle = None;
             }
         }
     }
