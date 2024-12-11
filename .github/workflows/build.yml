@@ -33,6 +33,17 @@ jobs:
       #   if: matrix.settings.target == 'macos-arm'
       #   run: rustup target add aarch64-apple-darwin
 
+      - name: Get latest release
+        id: get_release
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const latestRelease = await github.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            return latestRelease.data;
+
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
       - name: Rust cache
@@ -60,7 +71,7 @@ jobs:
         with:
           args: ${{ matrix.settings.args }}
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
-          releaseName: v__VERSION__-beta
-          releaseBody: "This is a release"
+          releaseName: v__VERSION__
+          releaseBody: "${{ steps.get_release.outputs.body }}"
           releaseDraft: true
           prerelease: false
