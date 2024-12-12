@@ -42,7 +42,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
             });
-            return latestRelease.data;
+            return { body: latestRelease.data.body };
 
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable

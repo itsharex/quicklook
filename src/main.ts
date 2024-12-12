@@ -25,7 +25,7 @@ app.use(ElementPlus, {
 })
 
 app.config.errorHandler = (err, vm, code) => {
-    error(`[Vue Error]: Instance-${vm}；Error- ${err}Code- ${code}`)
+    error(`[Vue Error]: Instance-${vm?.$host}；Error- ${err?.toString()}Code- ${code}`)
 }
 app.config.warnHandler = (msg, vm, trace) => {
     debug(`[Vue Warn]: Message-${msg}；Instance-${vm}；Trace- ${trace}`)

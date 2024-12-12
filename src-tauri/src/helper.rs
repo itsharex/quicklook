@@ -33,6 +33,7 @@ pub fn get_webview_window(
         Some(window) => Ok(window),
         None => WebviewWindowBuilder::new(app, label, WebviewUrl::App(url.into()))
             .center()
+            .auto_resize()
             .build(),
     }
 }

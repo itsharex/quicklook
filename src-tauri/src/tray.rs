@@ -1,10 +1,8 @@
 use tauri::{
     menu::{MenuBuilder, MenuItem, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    App, Emitter, Manager,
+    App, Manager, WebviewUrl, WebviewWindowBuilder
 };
-#[path = "updater.rs"]
-mod updater;
 
 #[path = "helper.rs"]
 mod helper;
@@ -35,12 +33,14 @@ pub fn create_tray(app: &mut App) -> tauri::Result<()> {
                 app.exit(0);
             }
             "upgrade" => {
-                let _ = app.emit("updater", {});
-                let handle = app.clone();
-                tauri::async_runtime::spawn(async move {
-                    updater::update(&handle).await.unwrap();
-                });
-                println!("Upgrade");
+                let _ = WebviewWindowBuilder::new(app, "upgrade", WebviewUrl::App("/upgrade".into()))
+                .center()
+                .title("检查更新")
+                .inner_size(400.0, 500.0)
+                .focused(true)
+                .window_classname("quicklook-upgrade")
+                .auto_resize()
+                .build();
             }
             "setting" => {
                 println!("Setting");
