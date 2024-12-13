@@ -42,7 +42,10 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
             });
-            return { body: latestRelease.data.body };
+            const notes = latestRelease.data.body || '没有更新信息';
+            return notes;
+      - name: Read ReleaseBody
+        run: echo "ReleaseBody=${{ steps.get_release.outputs.result }}"
 
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
@@ -72,6 +75,6 @@ jobs:
           args: ${{ matrix.settings.args }}
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
           releaseName: v__VERSION__
-          releaseBody: "${{ steps.get_release.outputs.body }}"
+          releaseBody: "${{ steps.get_release.outputs.result }}"
           releaseDraft: true
           prerelease: false
