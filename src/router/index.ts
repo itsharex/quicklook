@@ -77,6 +77,11 @@ const router = createRouter({
             name: 'settings',
             component: () => import('@/views/settings.vue'),
         },
+        {
+            path: '/upgrade',
+            name: 'upgrade',
+            component: () => import('@/views/upgrade.vue'),
+        },
     ],
 })
 

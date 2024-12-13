@@ -1,7 +1,8 @@
 use std::sync::mpsc;
 use std::thread;
 use tauri::{
-    webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl, WebviewWindowBuilder,
+    webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl,
+    WebviewWindowBuilder,
 };
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
@@ -13,6 +14,7 @@ use windows::{
                 CLSCTX_SERVER, COINIT_APARTMENTTHREADED,
             },
             SystemServices::SFGAO_FILESYSTEM,
+            Variant,
         },
         UI::{
             Input::KeyboardAndMouse,
@@ -61,11 +63,17 @@ impl Selected {
         let mut type_str: Option<String> = None;
         let hwnd_gfw = unsafe { WindowsAndMessaging::GetForegroundWindow() };
         let class_name = helper::get_window_class_name(hwnd_gfw);
+        log::info!("class_name: {}", class_name);
+
         if class_name.contains("CabinetWClass") {
             type_str = Some("explorer".to_string());
-        } else if class_name.contains("Progman") {
-            type_str = Some("desktop".to_string());
+        } else if class_name.contains("Progman") || class_name.contains("WorkerW") {
+            let defview = unsafe { WindowsAndMessaging::FindWindowExW(hwnd_gfw, None, w!("SHELLDLL_DefView"), None) };
+            if defview.is_ok() {
+                type_str = Some("desktop".to_string());
+            }
         }
+        log::info!("type_str: {:?}", type_str);
         type_str
     }
 
@@ -113,8 +121,7 @@ impl Selected {
                 }
 
                 let shell_view = shell_browser.QueryActiveShellView().unwrap();
-                let shell_items = shell_view
-                    .GetItemObject::<IShellItemArray>(SVGIO_SELECTION);
+                let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION);
 
                 if shell_items.is_err() {
                     continue;
@@ -126,7 +133,7 @@ impl Selected {
 
                     // 如果不是文件对象则继续循环
                     if let Ok(attrs) = shell_item.GetAttributes(SFGAO_FILESYSTEM) {
-                        println!("attrs: {:?}", attrs);
+                        log::info!("attrs: {:?}", attrs);
                         if attrs.0 == 0 {
                             continue;
                         }
@@ -163,10 +170,11 @@ impl Selected {
             let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
             let mut target_path = String::new();
             let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
+            log::info!("hwnd_gfw: {:?}", hwnd_gfw);
             let shell_windows: IShellWindows =
                 CoCreateInstance(&ShellWindows, None, CLSCTX_SERVER).unwrap();
 
-            let pvar_loc: VARIANT = windows::Win32::System::Variant::VariantInit();
+            let pvar_loc: VARIANT = Variant::VariantInit();
 
             // 获取活动窗口
             let mut phwnd: i32 = 0;
@@ -193,13 +201,7 @@ impl Selected {
                 .unwrap()
                 .QueryService::<IShellBrowser>(&IShellBrowser::IID)
                 .unwrap();
-
-            let phwnd = shell_browser.GetWindow().unwrap();
-
-            if hwnd_gfw.0 != phwnd.0 {
-                CoUninitialize();
-                tx.send(target_path.clone()).unwrap();
-            }
+           
             let shell_view = shell_browser.QueryActiveShellView().unwrap();
             let shell_items = shell_view
                 .GetItemObject::<IShellItemArray>(SVGIO_SELECTION)
@@ -251,26 +253,40 @@ impl WebRoute {
     pub fn new(path: String, query: UFile) -> Self {
         Self { path, query }
     }
+    pub fn get_route(type_str: &str, file_info: &UFile) -> WebRoute {
+        match type_str {
+            "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
+            "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
+            "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
+            "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
+            "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
+            "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
+            "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
+            "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
+            "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
+            _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
+        }
+    }
 }
 
 #[allow(dead_code)]
 impl PreviewFile {
     // 注册键盘钩子
     pub fn set_keyboard_hook(&mut self) {
-        unsafe {
-            let hook_ex = WindowsAndMessaging::SetWindowsHookExW(
+        let hook_ex = unsafe {
+            WindowsAndMessaging::SetWindowsHookExW(
                 WindowsAndMessaging::WH_KEYBOARD_LL,
                 Some(Self::keyboard_proc), // 使用结构体的键盘回调
                 None,                      // 当前进程实例句柄
                 0,
-            );
-            match hook_ex {
-                Ok(result) => {
-                    self.hook_handle = Some(result);
-                }
-                Err(_) => {
-                    self.hook_handle = None;
-                }
+            )
+        };
+        match hook_ex {
+            Ok(result) => {
+                self.hook_handle = Some(result);
+            }
+            Err(_) => {
+                self.hook_handle = None;
             }
         }
     }
@@ -319,18 +335,8 @@ impl PreviewFile {
             let file_info = file_info.unwrap();
             match app.get_webview_window("preview") {
                 Some(window) => {
-                    let route = match file_info.get_file_type().as_str() {
-                        "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
-                        "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
-                        "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
-                        "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
-                        "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
-                        "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
-                        "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
-                        "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
-                        "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
-                        _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
-                    };
+                    let type_str = file_info.get_file_type();
+                    let route = WebRoute::get_route(&type_str, &file_info);
 
                     let url = route.to_url();
                     let js = format!("window.location.href = '{}'", &url);
@@ -348,27 +354,15 @@ impl PreviewFile {
                     .center()
                     .decorations(false)
                     .skip_taskbar(true)
+                    .auto_resize()
                     .on_page_load(move |window, payload| {
                         let cur_path = payload.url().path();
 
                         if cur_path == "/preview" {
                             match payload.event() {
                                 PageLoadEvent::Finished => {
-                                    let route = match file_info.get_file_type().as_str() {
-                                        "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
-                                        "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
-                                        "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
-                                        "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
-                                        "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
-                                        "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
-                                        "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
-                                        "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
-                                        "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
-                                        _ => WebRoute::new(
-                                            "/preview/not-support".to_string(),
-                                            file_info.clone(),
-                                        ),
-                                    };
+                                    let type_str = file_info.get_file_type();
+                                    let route = WebRoute::get_route(&type_str, &file_info);
 
                                     let url = route.to_url();
                                     let js = format!("window.location.href = '{}'", &url);
@@ -417,6 +411,7 @@ impl Default for PreviewFile {
     }
 }
 
+//noinspection ALL
 // 公开一个全局函数来初始化 PreviewFile
 pub fn init_preview_file(handle: AppHandle) {
     let mut preview_file = PreviewFile::default();

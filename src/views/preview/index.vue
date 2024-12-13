@@ -32,10 +32,10 @@ import { Loading } from '@element-plus/icons-vue'
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: rgba(0, 0, 0, 0.3);
+        background-color: rgba(0, 0, 0, 0.2);
         color: white;
         & .spin {
-            font-size: 40px;
+            font-size: 34px;
             animation: spin 1.4s linear infinite;
         }
         @keyframes spin {

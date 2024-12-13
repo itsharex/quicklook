@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { readTextFile } from '@tauri-apps/plugin-fs'
 import { codeToHtml } from 'shiki'
 import { useRoute } from 'vue-router'
 import type { FileInfo } from '@/utils/typescript'
 import LayoutPreview from '@/components/layout-preview.vue'
+import { readTextFile } from '@/utils'
 
 const route = useRoute()
 
@@ -16,18 +16,32 @@ const fileInfo = ref<FileInfo>()
 const content = ref<string>()
 const loading = ref<boolean>(false)
 
+const getLanguage = (extension: string) => {
+    let ext = extension
+    if (['cjs', 'mjs'].includes(extension)) {
+        ext = 'js'
+    } else if (['cts', 'mts'].includes(extension)) {
+        ext = 'ts'
+    } else if (['markdown'].includes(extension)) {
+        ext = 'md'
+    }
+    return ext
+}
+
 onMounted(async () => {
     loading.value = true
     fileInfo.value = route.query as unknown as FileInfo
-    const code = await readTextFile(fileInfo.value.path)
-    const html = await codeToHtml(code, {
-        lang: 'javascript',
+    const path = fileInfo.value.path as string
+
+    const code = await readTextFile(path)
+    const lang = getLanguage(fileInfo.value.extension)
+    content.value = await codeToHtml(code, {
+        lang: lang,
         themes: {
             light: 'github-light',
             dark: 'github-dark',
         },
     })
-    content.value = html
     loading.value = false
 })
 </script>
@@ -52,8 +66,9 @@ onMounted(async () => {
         width: 100%;
         height: 100%;
         overflow: auto;
-        padding: 12px 24px;
+        padding: 12px 16px;
         font-size: 13px;
+        & :deep(pre),
         & :deep(pre code) {
             font-family: 'Courier New', Courier, monospace;
             line-height: 1.2em;

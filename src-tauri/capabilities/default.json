@@ -4,7 +4,8 @@
   "description": "enables the default permissions",
   "windows": [
     "main",
-    "preview"
+    "preview",
+    "upgrade"
   ],
   "local": true,
   "permissions": [
@@ -42,6 +43,14 @@
       ]
     },
     {
+      "identifier": "fs:allow-read-file",
+      "allow": [
+        {
+          "path": "**"
+        }
+      ]
+    },
+    {
       "identifier": "shell:allow-open",
       "allow": [
         {
@@ -52,6 +61,23 @@
           "cmd": ""
         }
       ]
-    }
+    },
+    {
+      "identifier": "updater:allow-check",
+      "allow": [
+        {
+          "path": "/upgrade"
+        }
+      ]
+    },
+    {
+      "identifier": "updater:allow-download-and-install",
+      "allow": [
+        {
+          "path": "/upgrade"
+        }
+      ]
+    },
+    "log:allow-log"
   ]
 }

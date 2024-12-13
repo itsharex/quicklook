@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use std::os::windows::fs::MetadataExt;
 use std::path::Path;
 
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct File {
     file_type: String,
@@ -16,14 +15,21 @@ pub struct File {
 
 impl File {
     // 构造 File 实例
-    fn new(file_type: &str, path: String, extension: String, size: u64, last_modified: u64, name: String) -> File {
+    fn new(
+        file_type: &str,
+        path: String,
+        extension: String,
+        size: u64,
+        last_modified: u64,
+        name: String,
+    ) -> File {
         File {
             file_type: file_type.to_string(),
             path,
             extension,
             size,
             last_modified,
-            name
+            name,
         }
     }
 
@@ -71,7 +77,6 @@ pub fn get_file_info(path: &str) -> Option<File> {
         .extension()
         .map_or("txt".to_string(), |ext| ext.to_string_lossy().into_owned());
 
-
     let metadata = file_path.metadata().unwrap();
     let name = match file_path.file_name() {
         Some(tmp) => tmp.to_string_lossy().into_owned(),
@@ -79,8 +84,14 @@ pub fn get_file_info(path: &str) -> Option<File> {
     };
     // 根据扩展名从映射表中获取文件类型
     match file_type_mapping().get(extension.as_str()) {
-        Some(file_type) => Some(File::new(file_type, path_str, extension, metadata.file_size(), metadata.last_write_time(), name),
-        ),
+        Some(file_type) => Some(File::new(
+            file_type,
+            path_str,
+            extension,
+            metadata.file_size(),
+            metadata.last_write_time(),
+            name,
+        )),
         None => None, // 如果没有匹配的文件类型，返回 None
     }
 }
@@ -97,6 +108,11 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     // map.insert("docx", "Doc");
     map.insert("xls", "Doc");
     map.insert("xlsx", "Doc");
+    map.insert("xlsm", "Doc");
+    map.insert("xlsb", "Doc");
+    map.insert("xla", "Doc");
+    map.insert("xlam", "Doc");
+    map.insert("ods", "Doc");
     map.insert("csv", "Doc");
     // map.insert("ppt", "Doc");
     // map.insert("pptx", "Doc");
@@ -185,6 +201,7 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("cpp", "Code");
     map.insert("js", "Code");
     map.insert("mjs", "Code");
+    map.insert("cjs", "Code");
     map.insert("ts", "Code");
     map.insert("mts", "Code");
     map.insert("tsx", "Code");
@@ -199,6 +216,8 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("c", "Code");
     map.insert("go", "Code");
     map.insert("vue", "Code");
+    map.insert("svelte", "Code");
+    map.insert("astro", "Code");
     map.insert("jsx", "Code");
     map.insert("json", "Code");
     map.insert("yml", "Code");
@@ -212,6 +231,7 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("php", "Code");
     map.insert("h", "Code");
     map.insert("xml", "Code");
+    map.insert("sql", "Code");
 
     // 书籍文件
     map.insert("pdf", "Book");

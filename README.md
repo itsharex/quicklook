@@ -83,3 +83,10 @@ pnpm tauri build
   - [ ] 支持格式的选择
   - [ ] 版本显示以及更新
   - [ ] 自启动
+
+## 使用到的开源软件
+
+- csv
+- calamine
+- vitepress 的样式
+- zip

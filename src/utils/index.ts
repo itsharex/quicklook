@@ -1,4 +1,5 @@
 import { Window, type WindowLabel } from '@tauri-apps/api/window'
+import { readFile } from '@tauri-apps/plugin-fs'
 
 export const getWindow = async (label: WindowLabel) => {
     return await Window.getByLabel(label)
@@ -93,6 +94,15 @@ export class Type {
     static isBigInt = (val: unknown) => {
         return Type.get(val) === 'bigint'
     }
+
+    /**
+     * 是否uint8array
+     * @param val
+     * @returns
+     */
+    static isUnit8Array = (val: unknown) => {
+        return Type.get(val) === 'uint8array'
+    }
 }
 /**
  * 格式化字节大小
@@ -113,5 +123,19 @@ export const formatBytes = (size: number): string => {
         return `${(size / GB).toFixed(2)} GB`
     } else {
         return `${(size / TB).toFixed(2)} TB`
+    }
+}
+
+/**
+ * 读取文本文件
+ * @param path string
+ * @returns
+ */
+export const readTextFile = async (path: string): Promise<string> => {
+    const file = await readFile(path)
+    if (file instanceof Uint8Array) {
+        return new TextDecoder().decode(file)
+    } else {
+        return ''
     }
 }

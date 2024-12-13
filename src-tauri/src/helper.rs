@@ -8,16 +8,13 @@ use windows::{
     core::PCWSTR,
     Win32::{
         Foundation::HWND,
-        UI::{
-            WindowsAndMessaging,
-            Shell,
-        },
         System::Com,
-    }
+        UI::{Shell, WindowsAndMessaging},
+    },
 };
 
 use std::{fmt::Debug, fs::File};
-use zip::{ZipArchive, DateTime};
+use zip::{DateTime, ZipArchive};
 
 #[allow(unused)]
 pub fn get_window_class_name(hwnd: HWND) -> String {
@@ -36,6 +33,7 @@ pub fn get_webview_window(
         Some(window) => Ok(window),
         None => WebviewWindowBuilder::new(app, label, WebviewUrl::App(url.into()))
             .center()
+            .auto_resize()
             .build(),
     }
 }
@@ -49,10 +47,10 @@ pub fn open_by_default(file_path: &str, hwnd: HWND) -> windows::core::Result<()>
     // 配置 SHELLEXECUTEINFOW 结构
     let mut sei = Shell::SHELLEXECUTEINFOW {
         cbSize: std::mem::size_of::<Shell::SHELLEXECUTEINFOW>() as u32,
-        lpFile: file_path_wide, // 文件路径
-        nShow: 1,               // SW_SHOWNORMAL
+        lpFile: file_path_wide,              // 文件路径
+        nShow: 1,                            // SW_SHOWNORMAL
         fMask: Shell::SEE_MASK_INVOKEIDLIST, // 打开方式对话框
-        hwnd,          // 父窗口句柄（可替换为实际窗口句柄）
+        hwnd,                                // 父窗口句柄（可替换为实际窗口句柄）
         ..Default::default()
     };
 
@@ -99,10 +97,10 @@ pub struct Extract {
 
 #[allow(unused)]
 impl Extract {
-    pub fn zip(zip_path: & str) -> Result<Vec<Extract>, Box<dyn std::error::Error>> {
+    pub fn zip(zip_path: &str) -> Result<Vec<Extract>, Box<dyn std::error::Error>> {
         // 打开压缩文件
         let file = File::open(zip_path)?;
-        let mut archive: ZipArchive<File>  = ZipArchive::new(file)?;
+        let mut archive: ZipArchive<File> = ZipArchive::new(file)?;
         let mut target: Vec<Extract> = vec![];
         // 遍历压缩包中的每一个文件
         for i in 0..archive.len() {
@@ -110,21 +108,28 @@ impl Extract {
             let dir = file.is_dir();
             let file_name = file.name().to_string();
             let size = file.size();
-            let last_modified = file.last_modified().unwrap_or(DateTime::default()).to_string();
+            let last_modified = file
+                .last_modified()
+                .unwrap_or(DateTime::default())
+                .to_string();
 
-            target.push(Extract { name: file_name, size, last_modified, dir });
+            target.push(Extract {
+                name: file_name,
+                size,
+                last_modified,
+                dir,
+            });
         }
 
         Ok(target)
     }
-    
 }
 
 #[allow(unused)]
 #[derive(Debug, Clone, Serialize)]
 pub struct DSheet {
     name: String,
-    rows: Vec<Vec<String>>
+    rows: Vec<Vec<String>>,
 }
 
 #[allow(unused)]
@@ -132,11 +137,11 @@ pub struct Document;
 
 #[allow(unused)]
 impl Document {
-    pub fn excel(file_path: &str) -> Result<Vec<DSheet>,  Box<dyn std::error::Error>> {
+    pub fn excel(file_path: &str) -> Result<Vec<DSheet>, Box<dyn std::error::Error>> {
         let mut workbook = calamine::open_workbook_auto(file_path)?;
         let sheets = workbook.sheet_names().to_owned();
         let mut target: Vec<DSheet> = Vec::new();
-        
+
         for sheet in sheets {
             let range = workbook.worksheet_range(&sheet)?;
             let mut rows = Vec::new();
@@ -147,20 +152,19 @@ impl Document {
                 }
                 rows.push(cell_list);
             }
-            let map = DSheet {
-                name: sheet,
-                rows
-            };
-            
+            let map = DSheet { name: sheet, rows };
+
             target.push(map);
         }
         Ok(target)
     }
     pub fn csv(file_path: &str) -> Result<Vec<DSheet>, Box<dyn std::error::Error>> {
         let file = File::open(file_path)?;
-        let mut rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(file);
-        
-        let mut rows : Vec<Vec<String>> = vec![];
+        let mut rdr = csv::ReaderBuilder::new()
+            .has_headers(true)
+            .from_reader(file);
+
+        let mut rows: Vec<Vec<String>> = vec![];
         for result in rdr.records() {
             let record = result?;
             let mut cols: Vec<String> = Vec::new();
@@ -171,7 +175,7 @@ impl Document {
         }
         let target: Vec<DSheet> = vec![DSheet {
             name: "sheet1".to_string(),
-            rows
+            rows,
         }];
         Ok(target)
     }
