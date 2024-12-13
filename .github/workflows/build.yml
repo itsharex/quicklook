@@ -13,8 +13,11 @@ jobs:
       matrix:
         settings:
           - platform: windows-latest
-            args: "--verbose"
+            args: "--target x86_64-pc-windows-msvc"
             target: "windows"
+          - platform: windows-latest
+            args: "--target aarch64-pc-windows-msvc"
+            target: "windows-aarch64"
           # - platform: macos-latest
           #   args: "--target x86_64-apple-darwin"
           #   target: "macos-intel"
@@ -26,6 +29,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Add Rust targets window aarch64
+        if: matrix.settings.target == 'windows-aarch64'
+        run: rustup aarch64-pc-windows-msvc
       # - name: Add Rust targets(macOS Intel)
       #   if: matrix.settings.target == 'macos-intel'
       #   run: rustup target add x86_64-apple-darwin
@@ -44,8 +50,6 @@ jobs:
             });
             const notes = latestRelease.data.body || '没有更新信息';
             return notes;
-      - name: Read ReleaseBody
-        run: echo "ReleaseBody=${{ steps.get_release.outputs.result }}"
 
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
@@ -74,7 +78,7 @@ jobs:
         with:
           args: ${{ matrix.settings.args }}
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
-          releaseName: v__VERSION__
+          releaseName: 'v__VERSION__'
           releaseBody: "${{ steps.get_release.outputs.result }}"
           releaseDraft: true
           prerelease: false
