@@ -3,20 +3,20 @@ import { check, Update } from '@tauri-apps/plugin-updater'
 import { onMounted, ref, computed } from 'vue'
 import { info } from '@tauri-apps/plugin-log'
 
-const checed = ref(false)
+const checked = ref(false)
 const checkUpgrade = async (): Promise<{ updaterInstance: Update | null; isUpgrade: boolean }> => {
     const result = await check()
     return {
         updaterInstance: result,
-        isUpgrade: result ? true : false,
+        isUpgrade: !!result,
     }
 }
 let updaterInstance: Update | null = null
 const isUpgrade = ref(false)
 onMounted(async () => {
-    checed.value = false
+    checked.value = false
     const tmp = await checkUpgrade()
-    checed.value = true
+    checked.value = true
     updaterInstance = tmp.updaterInstance
     isUpgrade.value = tmp.isUpgrade
 })
@@ -54,11 +54,24 @@ const upgrade = async () => {
         })
     }
 }
+
+const cancelUpgrade = () => {
+    updaterInstance?.close()
+}
+
+const isDownloading = ref(false)
+const handleUpgrade = () => {
+    if (isDownloading.value) {
+        cancelUpgrade()
+    } else {
+        handleUpgrade()
+    }
+}
 </script>
 
 <template>
-    <div class="upgrade" v-loading="!checed">
-        <template v-if="checed">
+    <div class="upgrade" v-loading="!checked">
+        <template v-if="checked">
             <div v-if="isUpgrade" class="upgrade-yes">
                 <p>更新内容：</p>
                 <el-scrollbar max-height="400px" style="height: auto">
@@ -66,7 +79,7 @@ const upgrade = async () => {
                 </el-scrollbar>
                 <p>更新进度：</p>
                 <el-progress :percentage="percentage" text-inside striped striped-flow :stroke-width="15" />
-                <el-button @click="upgrade">现在升级</el-button>
+                <el-button @click="handleUpgrade">{{ isDownloading ? '取消升级' : '现在升级' }}</el-button>
             </div>
             <div v-else class="upgrade-none">
                 <p>当前已经是最新版本了</p>
