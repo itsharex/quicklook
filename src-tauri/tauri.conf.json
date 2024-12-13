@@ -40,7 +40,6 @@
     "shortDescription": "Windows 平台的文件预览工具",
     "createUpdaterArtifacts": true,
     "targets": [
-      "msi",
       "nsis"
     ],
     "icon": [
@@ -55,19 +54,18 @@
       "webviewInstallMode": {
         "type": "embedBootstrapper"
       },
-      "wix": {
-        "language": "zh-CN"
-      },
       "nsis": {
         "installMode": "both",
-        "installerIcon": "icons/icon.ico"
+        "installerIcon": "icons/icon.ico",
+        "displayLanguageSelector": true,
+        "languages":["SimpChinese"]
       }
     }
   },
   "plugins": {
     "updater": {
       "createUpdaterArtifacts": true,
-      "dangerousInsecureTransportProtocol": true,
+      "dangerousInsecureTransportProtocol": false,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNEMEM3QzA1RjJCRkY1ODYKUldTRzliL3lCWHdNUGRpVGU1a3YzbWE1WlB0RVR3UU10eGZBME10dTkrbDg3QkNpSVdrOGMyQTcK",
       "endpoints": [
         "https://github.com/GuoJikun/quicklook/releases/latest/download/latest.json"
