@@ -1,8 +1,7 @@
 use std::sync::mpsc;
 use std::thread;
 use tauri::{
-    webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl,
-    WebviewWindowBuilder,
+    webview::PageLoadEvent, AppHandle, Error as TauriError, Listener, Manager, WebviewUrl, WebviewWindowBuilder
 };
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
@@ -310,15 +309,18 @@ impl PreviewFile {
 
     // 全局键盘钩子的回调函数
     extern "system" fn keyboard_proc(ncode: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
-        if ncode == 0 && wparam.0 == WindowsAndMessaging::WM_KEYDOWN as usize {
+        if ncode >= 0 && (wparam.0 == WindowsAndMessaging::WM_KEYDOWN as usize || wparam.0 == WindowsAndMessaging::WM_SYSKEYDOWN as usize) {
             let kb_struct = unsafe { *(lparam.0 as *const WindowsAndMessaging::KBDLLHOOKSTRUCT) };
             let vk_code = kb_struct.vkCode;
 
-            // 获取 PreviewFile 实例并处理按键事件
-            if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
-                app.handle_key_down(vk_code);
-            }
+            if vk_code == KeyboardAndMouse::VK_SPACE.0 as u32 {
+                // 获取 PreviewFile 实例并处理按键事件
+                if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
+                    app.handle_key_down(vk_code);
+                }
+            } 
         }
+        // 确保消息被传递给其他应用程序
         unsafe { WindowsAndMessaging::CallNextHookEx(None, ncode, wparam, lparam) }
     }
 

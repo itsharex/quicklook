@@ -64,7 +64,7 @@ const handleUpgrade = () => {
     if (isDownloading.value) {
         cancelUpgrade()
     } else {
-        handleUpgrade()
+        upgrade()
     }
 }
 </script>
