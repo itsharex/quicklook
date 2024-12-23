@@ -1,12 +1,12 @@
 use std::sync::mpsc;
 use std::thread;
 use tauri::{
-    webview::PageLoadEvent, AppHandle, Error as TauriError, Listener, Manager, WebviewUrl, WebviewWindowBuilder
+    webview::PageLoadEvent, AppHandle, Error as TauriError,  Manager, WebviewUrl, WebviewWindowBuilder
 };
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
     Win32::{
-        Foundation::{LPARAM, LRESULT, WPARAM},
+        Foundation::{LPARAM, LRESULT, WPARAM, GetLastError},
         System::{
             Com::{
                 CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch, IServiceProvider,
@@ -309,19 +309,26 @@ impl PreviewFile {
 
     // 全局键盘钩子的回调函数
     extern "system" fn keyboard_proc(ncode: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
-        if ncode >= 0 && (wparam.0 == WindowsAndMessaging::WM_KEYDOWN as usize || wparam.0 == WindowsAndMessaging::WM_SYSKEYDOWN as usize) {
-            let kb_struct = unsafe { *(lparam.0 as *const WindowsAndMessaging::KBDLLHOOKSTRUCT) };
-            let vk_code = kb_struct.vkCode;
-
-            if vk_code == KeyboardAndMouse::VK_SPACE.0 as u32 {
-                // 获取 PreviewFile 实例并处理按键事件
-                if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
-                    app.handle_key_down(vk_code);
-                }
-            } 
-        }
         // 确保消息被传递给其他应用程序
-        unsafe { WindowsAndMessaging::CallNextHookEx(None, ncode, wparam, lparam) }
+        let next_hook_result = unsafe { WindowsAndMessaging::CallNextHookEx(None, ncode, wparam, lparam) };
+        #[cfg(debug_assertions)]
+        log::info!("Hook called - next_hook_result: {:?}", next_hook_result);
+
+        tauri::async_runtime::block_on(async {
+            if ncode >= 0 && (wparam.0 == WindowsAndMessaging::WM_KEYDOWN as usize || wparam.0 == WindowsAndMessaging::WM_SYSKEYDOWN as usize) {
+                let kb_struct = unsafe { *(lparam.0 as *const WindowsAndMessaging::KBDLLHOOKSTRUCT) };
+                let vk_code = kb_struct.vkCode;
+
+                if vk_code == KeyboardAndMouse::VK_SPACE.0 as u32 {
+                    // 获取 PreviewFile 实例并处理按键事件
+                    if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
+                        app.handle_key_down(vk_code);
+                    }
+                } 
+            }
+        });   
+        
+        next_hook_result
     }
 
     pub fn preview_file(app: AppHandle) -> Result<(), TauriError> {
@@ -355,7 +362,7 @@ impl PreviewFile {
                     )
                     .center()
                     .decorations(false)
-                    .skip_taskbar(true)
+                    .skip_taskbar(false)
                     .auto_resize()
                     .on_page_load(move |window, payload| {
                         let cur_path = payload.url().path();
@@ -379,9 +386,11 @@ impl PreviewFile {
                     })
                     .focused(true)
                     .visible_on_all_workspaces(true)
+                    
                     .build();
 
                     if let Ok(preview) = result {
+                        
                         let _ = preview.show();
                     }
                 }
