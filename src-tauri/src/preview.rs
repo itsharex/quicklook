@@ -364,6 +364,7 @@ impl PreviewFile {
                     .decorations(false)
                     .skip_taskbar(false)
                     .auto_resize()
+                    .min_inner_size(300.0, 300.0)
                     .on_page_load(move |window, payload| {
                         let cur_path = payload.url().path();
 

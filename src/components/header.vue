@@ -115,11 +115,16 @@ const pin = async () => {
         padding: 0 12px;
         height: 100%;
         flex: auto;
+        max-width: 50%;
     }
 
     &-title {
         font-weight: 400;
         font-size: 1.2rem;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        max-width: 100%;
     }
     &-operate {
         display: inline-flex;
