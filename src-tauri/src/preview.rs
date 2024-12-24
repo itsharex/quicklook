@@ -27,7 +27,7 @@ use windows::{
     },
 };
 
-#[path = "./helper.rs"]
+#[path = "./helper/mod.rs"]
 mod helper;
 
 #[path = "./utils/mod.rs"]

@@ -10,7 +10,7 @@ import Excel from '@/components/document/excel.vue'
 const route = useRoute()
 
 defineOptions({
-    name: 'ArchiveSupport',
+    name: 'DocumentSupport',
 })
 
 interface Sheet {
@@ -18,16 +18,37 @@ interface Sheet {
     rows: string[][]
 }
 
+enum DocType {
+    Excel = 'Excel',
+    Docx = 'Docx',
+    Pptx = 'Pptx',
+}
+
+interface Docs {
+    Excel?: Array<Sheet>
+    Docx?: string
+}
+
 const fileInfo = ref<FileInfo>()
-const content = ref<Array<Sheet>>()
+const content = ref<Docs[keyof Docs]>()
+const type = ref<DocType>()
 
 onMounted(async () => {
     fileInfo.value = route?.query as unknown as FileInfo
     const val = fileInfo.value.path as string
-    const txt: Array<Sheet> = await invoke('document', { path: val, mode: fileInfo.value.extension })
-
-    console.log('path', txt)
-    content.value = txt
+    const docs: Docs = await invoke('document', { path: val, mode: fileInfo.value.extension })
+    type.value = docs.Excel ? DocType.Excel : DocType.Docx
+    console.log('docs', type.value)
+    switch (type.value) {
+        case DocType.Excel:
+            content.value = docs.Excel as Array<Sheet>
+            break
+        case DocType.Docx:
+            content.value = docs.Docx as string
+            break
+        case DocType.Pptx:
+            content.value = '' as string
+    }
 })
 </script>
 
@@ -35,7 +56,9 @@ onMounted(async () => {
     <LayoutPreview :file="fileInfo">
         <div class="text-support">
             <div class="text-support-inner">
-                <Excel :data="content" />
+                <Excel v-if="type === DocType.Excel" :data="content as Array<Sheet>" />
+                <div v-else-if="type === DocType.Docx" v-html="content"></div>
+                <div v-else>暂不支持</div>
             </div>
         </div>
     </LayoutPreview>
