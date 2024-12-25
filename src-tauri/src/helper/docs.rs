@@ -2,7 +2,6 @@ use std::{fs::File, io::Read};
 use calamine::Reader;
 use docx_rs::*;
 use serde::Serialize;
-use tauri::ipc::IpcResponse;
 
 #[derive(Debug, Clone, Serialize)]
 pub enum Docs {
@@ -20,9 +19,9 @@ impl Docs {
         Ok(Docs::Excel(target))
     }
     pub fn docx(file_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        println!("file_path: {}", file_path);
-        let target = docx(file_path)?;
-        Ok(Docs::Docx(target))
+        // let target = docx(file_path)?;
+        // todo 解析工作目前由 web 端解析
+        Ok(Docs::Docx(file_path.to_string()))
     }
     
 }
@@ -82,9 +81,14 @@ fn docx(file_path: &str) -> Result<String, Box<dyn std::error::Error>> {
     let instance = read_docx(&buf)?;
 
     let body = instance.document.children;
+
+
     let content = body.iter().map(|x| {
         match x {
             DocumentChild::Paragraph(p) => {
+                // 如何解析成html
+
+                println!("{:?}", p.children);
                 format!("<p>{}</p>", p.raw_text())
             },
             _ => "".to_string(),
@@ -94,3 +98,35 @@ fn docx(file_path: &str) -> Result<String, Box<dyn std::error::Error>> {
     Ok(content)
 }
 
+struct Docx2Html {
+    document: String,
+    styles: String,
+}
+
+impl Docx2Html {
+    fn new() -> Self {
+        Docx2Html {
+            document: "".to_string(),
+            styles: "".to_string(),
+        }
+    }
+    fn prase_paragraph(&self, p: &Box<Paragraph>) -> String {
+        let content = p.raw_text();
+        format!("<p>{}</p>", content)
+    }
+
+    fn parse_table(&self, t: &Box<Table>) -> String {
+        let mut content = String::new();
+        for row in t.rows.iter() {
+            content.push_str("<tr>");
+            let row = match row {
+                TableChild::TableRow(r) => r,
+            };
+            for cell in row.cells.iter() {
+                content.push_str(&format!("<td>{:?}</td>", cell));
+            }
+            content.push_str("</tr>");
+        }
+        format!("<table>{}</table>", content)
+    }
+}

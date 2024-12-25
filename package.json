@@ -30,6 +30,7 @@
     "@vicons/fluent": "^0.12.0",
     "@vueuse/core": "^12.0.0",
     "codemirror": "^6.0.1",
+    "docx-preview": "^0.3.3",
     "element-plus": "^2.9.0",
     "handsontable": "^14.6.1",
     "leafer-ui": "^1.0.10",
