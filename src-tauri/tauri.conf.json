@@ -49,6 +49,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "resources": {
+      "resources/config.json": "config.json"
+    },
     "windows": {
       "digestAlgorithm": "sha256",
       "webviewInstallMode": {

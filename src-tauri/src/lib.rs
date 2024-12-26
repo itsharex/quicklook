@@ -1,9 +1,11 @@
+use tauri::{Listener, Manager};
 use tauri_plugin_autostart::MacosLauncher;
 #[cfg(not(debug_assertions))]
 use tauri_plugin_autostart::ManagerExt;
 
 mod preview;
 mod tray;
+mod helper;
 
 #[path = "./command.rs"]
 mod command;
@@ -23,7 +25,8 @@ pub fn run() {
             Some(vec![]),
         ))
         .setup(|app| {
-            app.handle().plugin(
+            let handle = app.handle();
+            handle.plugin(
                 tauri_plugin_log::Builder::default()
                     .level(log::LevelFilter::Info)
                     .max_file_size(50000)
@@ -31,6 +34,21 @@ pub fn run() {
                     .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
                     .build(),
             )?;
+
+            let config = helper::config::read_config(handle)?;
+            app.manage(config);
+            println!("config is {:?}", app.state::<helper::config::Config>());
+            
+            let handle_clone = handle.clone();
+            let _ = app.listen("config_update", move |event| {
+                let handle = handle_clone.clone();
+                
+                println!("update event: {:?}", event);
+                if let Ok(conf) = helper::config::read_config(&handle_clone) {
+                    handle.manage(conf);
+                }
+               
+            });
             
             // 自动启动
             #[cfg(not(debug_assertions))]

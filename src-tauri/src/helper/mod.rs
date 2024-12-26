@@ -6,6 +6,7 @@ pub mod archives;
 pub mod docs;
 pub mod monitor;
 pub mod win;
+pub mod config;
 
 #[allow(unused)]
 pub fn get_webview_window(

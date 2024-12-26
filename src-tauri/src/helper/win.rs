@@ -1,6 +1,6 @@
 use std::path::Path;
 use windows::{
-    core::{Interface, PCWSTR, PWSTR},
+    core::{PCWSTR, PWSTR},
     Win32::{
         Foundation::{HWND, S_OK},
         System::Com,

@@ -1,5 +1,21 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { writeFile, BaseDirectory } from '@tauri-apps/plugin-fs'
+import { emit } from '@tauri-apps/api/event'
+
+const updateConfig = async (val: string) => {
+    const blob = new Blob([val], { type: 'application/json' })
+    const arrayBuffer = new Uint8Array(await blob.arrayBuffer())
+
+    writeFile('config.json', arrayBuffer, { baseDir: BaseDirectory.Resource })
+        .then(() => {
+            console.log('写入成功')
+            emit('config_updated')
+        })
+        .catch(e => {
+            console.error(e)
+        })
+}
 
 const imageList = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'apng']
 const imageChecked = ref([])

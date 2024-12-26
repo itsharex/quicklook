@@ -1,0 +1,179 @@
+{
+    "preview.markdown": [
+        "markdown",
+        "md"
+    ],
+    "preview.markdown.checked": [
+        "markdown",
+        "md"
+    ],
+    "preview.image": [
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "webp",
+        "bmp",
+        "ico",
+        "svg",
+        "apng"
+    ],
+    "preview.image.checked": [
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "webp",
+        "bmp",
+        "ico",
+        "svg",
+        "apng"
+    ],
+    "preview.video": [
+        "mp4",
+        "webm",
+        "mkv",
+        "flv",
+        "avi",
+        "mov",
+        "wmv",
+        "mpg",
+        "mpeg",
+        "m4v",
+        "3gp",
+        "3g2"
+    ],
+    "preview.video.checked": [
+        "mp4",
+        "webm",
+        "mkv",
+        "flv",
+        "avi",
+        "mov",
+        "wmv",
+        "mpg",
+        "mpeg",
+        "m4v",
+        "3gp",
+        "3g2"
+    ],
+    "preview.doc": [
+        "docx",
+        "xls",
+        "xlsx",
+        "xlsm",
+        "xlsb",
+        "xla",
+        "xlam",
+        "ods",
+        "csv"
+    ],
+    "preview.doc.checked": [
+        "docx",
+        "xls",
+        "xlsx",
+        "xlsm",
+        "xlsb",
+        "xla",
+        "xlam",
+        "ods",
+        "csv"
+    ],
+    "preview.code": [
+        "cpp",
+        "js",
+        "mjs",
+        "cjs",
+        "ts",
+        "mts",
+        "tsx",
+        "rs",
+        "py",
+        "java",
+        "html",
+        "css",
+        "scss",
+        "sass",
+        "less",
+        "c",
+        "go",
+        "vue",
+        "svelte",
+        "astro",
+        "jsx",
+        "json",
+        "yml",
+        "yaml",
+        "toml",
+        "bat",
+        "ps1",
+        "ini",
+        "swift",
+        "kt",
+        "php",
+        "h",
+        "xml",
+        "sql",
+        "svg"
+    ],
+    "preview.code.checked": [
+        "cpp",
+        "js",
+        "mjs",
+        "cjs",
+        "ts",
+        "mts",
+        "tsx",
+        "rs",
+        "py",
+        "java",
+        "html",
+        "css",
+        "scss",
+        "sass",
+        "less",
+        "c",
+        "go",
+        "vue",
+        "svelte",
+        "astro",
+        "jsx",
+        "json",
+        "yml",
+        "yaml",
+        "toml",
+        "bat",
+        "ps1",
+        "ini",
+        "swift",
+        "kt",
+        "php",
+        "h",
+        "xml",
+        "sql"
+    ],
+    "preview.font": [
+        "ttf",
+        "otf",
+        "woff2",
+        "woff"
+    ],
+    "preview.font.checked": [
+        "ttf",
+        "otf",
+        "woff2",
+        "woff"
+    ],
+    "preview.archive": [
+        "zip"
+    ],
+    "preview.archive.checked": [
+        "zip"
+    ],
+    "preview.book": [
+        "pdf"
+    ],
+    "preview.book.checked": [
+        "pdf"
+    ]
+}
