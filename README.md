@@ -56,7 +56,8 @@ pnpm tauri build
     - [x] xla
     - [x] xlam
     - [x] ods
-    - [ ] csv
+    - [x] csv
+    - [x] docx
   - 代码文件(utf8):
     - [x] html
     - [x] css
@@ -86,7 +87,12 @@ pnpm tauri build
 
 ## 使用到的开源软件
 
-- csv
-- calamine
+- csv: 解析 csv 文件
+- calamine: 解析 Excel 文件
 - vitepress 的样式
-- zip
+- zip: 解析 zip 格式的文件
+- docx-rs
+- docx-preview
+- image
+- windows: windows api
+- tauri: 一个跨平台应用开发框架

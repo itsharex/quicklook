@@ -7,9 +7,9 @@ use windows::Win32::{
 
 #[derive(Debug,serde::Serialize,Clone)]
 pub struct MonitorInfo {
-    width: i32,
-    height: i32,
-    scale: f64
+    pub width: f64,
+    pub height: f64,
+    pub scale: f64
 }
 
 impl Default for MonitorInfo {
@@ -35,5 +35,5 @@ pub fn get_monitor_info() -> MonitorInfo {
 
     unsafe {ReleaseDC(hwnd, hdc)};
     
-    MonitorInfo {width, height, scale: scale_factor}
+    MonitorInfo {width: width as f64, height: height as f64, scale: scale_factor}
 }

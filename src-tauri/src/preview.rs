@@ -1,12 +1,12 @@
 use std::sync::mpsc;
 use std::thread;
 use tauri::{
-    webview::PageLoadEvent, AppHandle, Error as TauriError,  Manager, WebviewUrl, WebviewWindowBuilder, LogicalSize, PhysicalSize, Size
+    webview::PageLoadEvent, AppHandle, Error as TauriError,  Manager, WebviewUrl, WebviewWindowBuilder
 };
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
     Win32::{
-        Foundation::{LPARAM, LRESULT, WPARAM, GetLastError},
+        Foundation::{LPARAM, LRESULT, WPARAM},
         System::{
             Com::{
                 CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch, IServiceProvider,
@@ -29,6 +29,7 @@ use windows::{
 
 #[path = "./helper/mod.rs"]
 mod helper;
+use helper::{win, monitor};
 
 #[path = "./utils/mod.rs"]
 mod utils;
@@ -61,7 +62,7 @@ impl Selected {
     fn get_focused_type() -> Option<String> {
         let mut type_str: Option<String> = None;
         let hwnd_gfw = unsafe { WindowsAndMessaging::GetForegroundWindow() };
-        let class_name = helper::get_window_class_name(hwnd_gfw);
+        let class_name = win::get_window_class_name(hwnd_gfw);
         log::info!("class_name: {}", class_name);
 
         if class_name.contains("CabinetWClass") {
@@ -342,6 +343,21 @@ impl PreviewFile {
             }
 
             let file_info = file_info.unwrap();
+
+            let monitor_info = monitor::get_monitor_info();
+            let scale = monitor_info.scale;
+            
+            let mut width = 1000.0;
+            let mut height = 600.0;
+
+            if monitor_info.width > 0.0 {
+                let tmp_width = monitor_info.width * 0.8;
+                let tmo_height = monitor_info.height * 0.8;
+                log::info!("tmp_width: {}, tmo_height: {}", tmp_width, tmo_height);
+                width = helper::get_scaled_size(tmp_width, scale);
+                height = helper::get_scaled_size(tmo_height, scale);
+            }
+
             match app.get_webview_window("preview") {
                 Some(window) => {
                     let type_str = file_info.get_file_type();
@@ -365,6 +381,7 @@ impl PreviewFile {
                     .decorations(false)
                     .skip_taskbar(false)
                     .auto_resize()
+                    .inner_size(width, height)
                     .min_inner_size(300.0, 300.0)
                     .on_page_load(move |window, payload| {
                         let cur_path = payload.url().path();

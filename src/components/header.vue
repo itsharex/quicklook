@@ -71,8 +71,7 @@ watch(
         const path = val?.path
         if (path) {
             const name = (await invoke('get_default_program_name', { path: path })) as string
-            console.log(name)
-            defaultProgrameName.value = `使用${name}打开` || '使用默认程序打开'
+            defaultProgrameName.value = `使用 ${name} 打开` || '使用默认程序打开'
         } else {
             defaultProgrameName.value = '使用默认程序打开'
         }
