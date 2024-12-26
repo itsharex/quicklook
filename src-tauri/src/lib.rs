@@ -30,8 +30,12 @@ pub fn run() {
             )?;
             
             // 自动启动
-            let autostart_manager = app.autolaunch();
-            let _ = autostart_manager.enable();
+            #[cfg(not(debug_assertions))]
+            {
+                let autostart_manager = app.autolaunch();
+                let _ = autostart_manager.enable();
+            }
+            
             // 创建托盘
             tray::create_tray(app)?;
             // 初始化预览文件
