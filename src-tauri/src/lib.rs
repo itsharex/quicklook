@@ -7,7 +7,8 @@ mod tray;
 
 #[path = "./command.rs"]
 mod command;
-use command::{archive, document, show_open_with_dialog};
+use command::{archive, document, show_open_with_dialog, get_monitor_info, get_default_program_name};
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -49,7 +50,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             show_open_with_dialog,
             archive,
-            document
+            document,
+            get_monitor_info,
+            get_default_program_name
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

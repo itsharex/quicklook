@@ -1,42 +1,18 @@
-use tauri::{
-    webview::WebviewWindow, AppHandle, Error as TError, Manager, WebviewUrl, WebviewWindowBuilder
-};
-
+use std::path::Path;
 use windows::{
     core::{Interface, PCWSTR, PWSTR},
     Win32::{
-        Foundation::HWND,
+        Foundation::{HWND, S_OK},
         System::Com,
         UI::{Shell, WindowsAndMessaging},
     },
 };
-
-
-pub mod archives;
-pub mod docs;
-pub mod monitor;
-pub mod win;
 
 #[allow(unused)]
 pub fn get_window_class_name(hwnd: HWND) -> String {
     let mut class_name = [0u16; 256];
     let len = unsafe { WindowsAndMessaging::GetClassNameW(hwnd, &mut class_name) };
     String::from_utf16_lossy(&class_name[0..len as usize])
-}
-
-#[allow(unused)]
-pub fn get_webview_window(
-    app: &AppHandle,
-    label: &str,
-    url: &str,
-) -> Result<WebviewWindow, TError> {
-    match app.get_webview_window(label) {
-        Some(window) => Ok(window),
-        None => WebviewWindowBuilder::new(app, label, WebviewUrl::App(url.into()))
-            .center()
-            .auto_resize()
-            .build(),
-    }
 }
 
 #[allow(unused)]
@@ -88,45 +64,43 @@ pub fn show_open_with_dialog(file_path: &str, hwnd: HWND) -> windows::core::Resu
 }
 
 pub fn get_default_program_name(path: &str) -> Result<String, String> {
+    let path = Path::new(path);
+    let ext = path.extension()
+        .and_then(|ext| ext.to_str())
+        .ok_or("No file extension".to_string())?;
+    
+    let ext = format!(".{}", ext);
+    let ext_wide: Vec<u16> = ext.encode_utf16().chain(std::iter::once(0)).collect();
+    
     unsafe {
-        let _ = Com::CoInitialize(None);
-        
-        let assoc: Shell::IQueryAssociations = Com::CoCreateInstance(
-            &Shell::IQueryAssociations::IID,
-            None,
-            Com::CLSCTX_INPROC_SERVER
-        ).map_err(|e| e.to_string())?;
-        
-        let path = std::path::Path::new(path);
-        let ext = path.extension()
-            .and_then(|ext| ext.to_str())
-            .ok_or("No file extension".to_string())?;
-        
-        let ext = format!(".{}", ext);
-        let ext_wide: Vec<u16> = ext.encode_utf16().chain(std::iter::once(0)).collect();
-        
-        assoc.Init(Shell::ASSOCF_NONE, PCWSTR(ext_wide.as_ptr()), None, None)
-            .map_err(|e| e.to_string())?;
-        
+        // 获取所需缓冲区大小
         let mut size = 0u32;
-        assoc.GetString(
+        let _ = Shell::AssocQueryStringW(
             Shell::ASSOCF_NONE,
             Shell::ASSOCSTR_FRIENDLYAPPNAME,
+            PCWSTR(ext_wide.as_ptr()),
             None,
             PWSTR::null(),
-            &mut size
-        ).ok();
-        
+            &mut size,
+        );
+
+        // 分配缓冲区并获取程序名
         let mut buffer = vec![0u16; size as usize];
-        assoc.GetString(
+        let result = Shell::AssocQueryStringW(
             Shell::ASSOCF_NONE,
             Shell::ASSOCSTR_FRIENDLYAPPNAME,
+            PCWSTR(ext_wide.as_ptr()),
             None,
             PWSTR(buffer.as_mut_ptr()),
-            &mut size
-        ).map_err(|e| e.to_string())?;
-        
-        let app_name = String::from_utf16_lossy(&buffer[..buffer.iter().position(|&x| x == 0).unwrap_or(buffer.len())]);
-        Ok(app_name)
+            &mut size,
+        );
+
+        if result != S_OK {
+            return Err(format!("获取 name Buffer 失败 -> {:?}", result));
+        }
+
+        // 转换为字符串
+        let name = String::from_utf16_lossy(&buffer[..size as usize - 1]);
+        Ok(name)
     }
 }

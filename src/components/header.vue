@@ -7,7 +7,7 @@ import {
     Pin16Regular,
     PinOff16Regular,
 } from '@vicons/fluent'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { open } from '@tauri-apps/plugin-shell'
 import type { FileInfo } from '@/utils/typescript'
@@ -63,6 +63,21 @@ const pin = async () => {
     }
     await curWindow.setAlwaysOnTop(pined.value)
 }
+
+const defaultProgrameName = ref<string>('使用默认程序打开')
+watch(
+    () => props.file,
+    async val => {
+        const path = val?.path
+        if (path) {
+            const name = (await invoke('get_default_program_name', { path: path })) as string
+            console.log(name)
+            defaultProgrameName.value = `使用${name}打开` || '使用默认程序打开'
+        } else {
+            defaultProgrameName.value = '使用默认程序打开'
+        }
+    },
+)
 </script>
 
 <template>
@@ -77,7 +92,7 @@ const pin = async () => {
             <div class="layout-header-operate-item" @click="pin" :title="`${pined ? '取消固定' : '固定'}`">
                 <n-icon :size="16"><PinOff16Regular v-if="pined" /><Pin16Regular v-else /></n-icon>
             </div>
-            <div class="layout-header-operate-item" @click="openByDefault" title="使用默认程序打开">
+            <div class="layout-header-operate-item" @click="openByDefault" :title="defaultProgrameName">
                 <n-icon :size="16"><Open16Regular /></n-icon>
             </div>
             <div class="layout-header-operate-item" @click="openWith" title="推荐打开程序列表">

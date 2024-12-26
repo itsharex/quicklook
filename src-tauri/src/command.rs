@@ -3,7 +3,7 @@ use windows::Win32::Foundation::HWND;
 
 #[path ="helper/mod.rs"]
 mod helper;
-use helper::{archives, docs};
+use helper::{archives, docs, monitor, win};
 
 #[command]
 pub fn show_open_with_dialog(app: AppHandle, path: &str) {
@@ -31,6 +31,16 @@ pub fn document(path: &str, mode: &str) -> Result<docs::Docs, String> {
         "docx" => docs::Docs::docx(path).map_err(|e| e.to_string()),
         _ => Err("Not Support".to_string()),
     }
+}
+
+#[command]
+pub fn get_monitor_info()-> monitor::MonitorInfo {
+    monitor::get_monitor_info()
+}
+
+#[command]
+pub fn get_default_program_name(path: &str)-> Result<String,String> {
+    win::get_default_program_name(path)
 }
 
 // use windows::{

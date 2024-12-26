@@ -1,7 +1,7 @@
 use std::sync::mpsc;
 use std::thread;
 use tauri::{
-    webview::PageLoadEvent, AppHandle, Error as TauriError,  Manager, WebviewUrl, WebviewWindowBuilder
+    webview::PageLoadEvent, AppHandle, Error as TauriError,  Manager, WebviewUrl, WebviewWindowBuilder, LogicalSize, PhysicalSize, Size
 };
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
@@ -355,6 +355,7 @@ impl PreviewFile {
                     let _ = window.set_focus();
                 }
                 None => {
+
                     let result = WebviewWindowBuilder::new(
                         &app,
                         "preview",
