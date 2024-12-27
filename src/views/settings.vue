@@ -1,24 +1,96 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { writeFile, BaseDirectory } from '@tauri-apps/plugin-fs'
-import { emit } from '@tauri-apps/api/event'
+// import { emit } from '@tauri-apps/api/event'
+import { readTextFile } from '@/utils'
 
-const updateConfig = async (val: string) => {
-    const blob = new Blob([val], { type: 'application/json' })
-    const arrayBuffer = new Uint8Array(await blob.arrayBuffer())
+// // const updateConfig = async (val: string) => {
+// //     const blob = new Blob([val], { type: 'application/json' })
+// //     const arrayBuffer = new Uint8Array(await blob.arrayBuffer())
 
-    writeFile('config.json', arrayBuffer, { baseDir: BaseDirectory.Resource })
-        .then(() => {
-            console.log('写入成功')
-            emit('config_updated')
-        })
-        .catch(e => {
-            console.error(e)
-        })
+// //     writeFile('config.json', arrayBuffer, { baseDir: BaseDirectory.Resource })
+// //         .then(() => {
+// //             console.log('写入成功')
+// //             emit('config_updated')
+// //         })
+// //         .catch(e => {
+// //             console.error(e)
+// //         })
+// // }
+
+const getConfig = async () => {
+    const config = await readTextFile('config.json', { baseDir: BaseDirectory.Resource })
+    try {
+        JSON.parse(config)
+    } catch (e) {
+        console.error(e)
+    }
+    const data = JSON.parse(config)
+    console.log(typeof config, data)
+    return {
+        markdown: data['preview.markdown'],
+        markdown_checked: data['preview.markdown.checked'],
+        image: data['preview.image'],
+        image_checked: data['preview.image.checked'],
+        video: data['preview.video'],
+        video_checked: data['preview.video.checked'],
+        doc: data['preview.doc'],
+        doc_checked: data['preview.doc.checked'],
+        code: data['preview.code'],
+        code_checked: data['preview.code.checked'],
+        font: data['preview.font'],
+        font_checked: data['preview.font.checked'],
+        archive: data['preview.archive'],
+        archive_checked: data['preview.archive.checked'],
+        book: data['preview.book'],
+        book_checked: data['preview.book.checked'],
+    }
 }
 
-const imageList = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'apng']
-const imageChecked = ref([])
+interface Config {
+    markdown: Array<string>
+    markdown_checked: Array<string>
+    image: Array<string>
+    image_checked: Array<string>
+    video: Array<string>
+    video_checked: Array<string>
+    doc: Array<string>
+    doc_checked: Array<string>
+    code: Array<string>
+    code_checked: Array<string>
+    font: Array<string>
+    font_checked: Array<string>
+    archive: Array<string>
+    archive_checked: Array<string>
+    book: Array<string>
+    book_checked: Array<string>
+}
+
+const config = ref<Config>({
+    markdown: [],
+    markdown_checked: [],
+    image: [],
+    image_checked: [],
+    video: [],
+    video_checked: [],
+    doc: [],
+    doc_checked: [],
+    code: [],
+    code_checked: [],
+    font: [],
+    font_checked: [],
+    archive: [],
+    archive_checked: [],
+    book: [],
+    book_checked: [],
+})
+onMounted(async () => {
+    config.value = await getConfig()
+    console.log(config.value)
+})
+
+// const config.image_checked = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'apng']
+// const imageChecked = ref([])
 </script>
 
 <template>
@@ -26,18 +98,19 @@ const imageChecked = ref([])
         <h1>This is an settings page</h1>
         <div class="setting-item support">
             <h2>支持的格式</h2>
+
             <div class="support-item">
                 <div class="support-item-header">
                     <span>图像（Image）</span>
                 </div>
                 <div class="support-item-body">
-                    <el-checkbox-group class="support-item-body-wrap" v-model="imageChecked">
-                        <template v-for="item in imageList" :key="item">
+                    <el-space class="support-item-body-wrap">
+                        <template v-for="item in config.image_checked" :key="item">
                             <div class="support-item-body-item">
-                                <el-checkbox :value="item" :label="item" />
+                                {{ item }}
                             </div>
                         </template>
-                    </el-checkbox-group>
+                    </el-space>
                 </div>
             </div>
             <div class="support-item">
@@ -45,13 +118,13 @@ const imageChecked = ref([])
                     <span>视频（Video）</span>
                 </div>
                 <div class="support-item-body">
-                    <el-checkbox-group class="support-item-body-wrap" v-model="imageChecked">
-                        <template v-for="item in imageList" :key="item">
+                    <el-space class="support-item-body-wrap">
+                        <template v-for="item in config.video_checked" :key="item">
                             <div class="support-item-body-item">
-                                <el-checkbox :value="item" :label="item" />
+                                {{ item }}
                             </div>
                         </template>
-                    </el-checkbox-group>
+                    </el-space>
                 </div>
             </div>
             <div class="support-item">
@@ -59,13 +132,13 @@ const imageChecked = ref([])
                     <span>字体（Font）</span>
                 </div>
                 <div class="support-item-body">
-                    <el-checkbox-group class="support-item-body-wrap" v-model="imageChecked">
-                        <template v-for="item in imageList" :key="item">
+                    <el-space class="support-item-body-wrap">
+                        <template v-for="item in config.font_checked" :key="item">
                             <div class="support-item-body-item">
-                                <el-checkbox :value="item" :label="item" />
+                                {{ item }}
                             </div>
                         </template>
-                    </el-checkbox-group>
+                    </el-space>
                 </div>
             </div>
             <div class="support-item">
@@ -73,13 +146,13 @@ const imageChecked = ref([])
                     <span>书籍（Book）</span>
                 </div>
                 <div class="support-item-body">
-                    <el-checkbox-group class="support-item-body-wrap" v-model="imageChecked">
-                        <template v-for="item in imageList" :key="item">
+                    <el-space class="support-item-body-wrap">
+                        <template v-for="item in config.book_checked" :key="item">
                             <div class="support-item-body-item">
-                                <el-checkbox :value="item" :label="item" />
+                                {{ item }}
                             </div>
                         </template>
-                    </el-checkbox-group>
+                    </el-space>
                 </div>
             </div>
         </div>

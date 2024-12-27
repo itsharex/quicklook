@@ -4,7 +4,7 @@ use serde_json::Value;
 use tauri::{AppHandle, Manager, path::BaseDirectory};
 
 // 读取resources下的config.json文件
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Config {
     pub markdown: Vec<String>,
     pub markdown_checked: Vec<String>,
