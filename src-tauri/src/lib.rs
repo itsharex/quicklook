@@ -37,7 +37,6 @@ pub fn run() {
 
             let config = helper::config::read_config(handle)?;
             app.manage(config);
-            println!("config is {:?}", app.state::<helper::config::Config>());
             
             let handle_clone = handle.clone();
             let _ = app.listen("config_update", move |event| {

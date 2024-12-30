@@ -255,16 +255,16 @@ impl WebRoute {
     }
     pub fn get_route(type_str: &str, file_info: &UFile) -> WebRoute {
         match type_str {
-            "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
-            "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
-            "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
-            "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
-            "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
-            "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
-            "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
-            "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
-            "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
-            _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
+            "Markdown" => WebRoute::new("/#/preview/md".to_string(), file_info.clone()),
+            "Text" => WebRoute::new("/#/preview/text".to_string(), file_info.clone()),
+            "Image" => WebRoute::new("/#/preview/image".to_string(), file_info.clone()),
+            "Video" => WebRoute::new("/#/preview/video".to_string(), file_info.clone()),
+            "Font" => WebRoute::new("/#/preview/font".to_string(), file_info.clone()),
+            "Code" => WebRoute::new("/#/preview/code".to_string(), file_info.clone()),
+            "Book" => WebRoute::new("/#/preview/book".to_string(), file_info.clone()),
+            "Archive" => WebRoute::new("/#/preview/archive".to_string(), file_info.clone()),
+            "Doc" => WebRoute::new("/#/preview/document".to_string(), file_info.clone()),
+            _ => WebRoute::new("/#/preview/not-support".to_string(), file_info.clone()),
         }
     }
 }
