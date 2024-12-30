@@ -255,16 +255,16 @@ impl WebRoute {
     }
     pub fn get_route(type_str: &str, file_info: &UFile) -> WebRoute {
         match type_str {
-            "Markdown" => WebRoute::new("/#/preview/md".to_string(), file_info.clone()),
-            "Text" => WebRoute::new("/#/preview/text".to_string(), file_info.clone()),
-            "Image" => WebRoute::new("/#/preview/image".to_string(), file_info.clone()),
-            "Video" => WebRoute::new("/#/preview/video".to_string(), file_info.clone()),
-            "Font" => WebRoute::new("/#/preview/font".to_string(), file_info.clone()),
-            "Code" => WebRoute::new("/#/preview/code".to_string(), file_info.clone()),
-            "Book" => WebRoute::new("/#/preview/book".to_string(), file_info.clone()),
-            "Archive" => WebRoute::new("/#/preview/archive".to_string(), file_info.clone()),
-            "Doc" => WebRoute::new("/#/preview/document".to_string(), file_info.clone()),
-            _ => WebRoute::new("/#/preview/not-support".to_string(), file_info.clone()),
+            "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
+            "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
+            "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
+            "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
+            "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
+            "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
+            "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
+            "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
+            "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
+            _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
         }
     }
 }
@@ -314,20 +314,18 @@ impl PreviewFile {
         let next_hook_result = unsafe { WindowsAndMessaging::CallNextHookEx(None, ncode, wparam, lparam) };
         #[cfg(debug_assertions)]
         log::info!("Hook called - next_hook_result: {:?}", next_hook_result);
+        
+        if ncode >= 0 && (wparam.0 == WindowsAndMessaging::WM_KEYDOWN as usize || wparam.0 == WindowsAndMessaging::WM_SYSKEYDOWN as usize) {
+            let kb_struct = unsafe { *(lparam.0 as *const WindowsAndMessaging::KBDLLHOOKSTRUCT) };
+            let vk_code = kb_struct.vkCode;
 
-        tauri::async_runtime::block_on(async {
-            if ncode >= 0 && (wparam.0 == WindowsAndMessaging::WM_KEYDOWN as usize || wparam.0 == WindowsAndMessaging::WM_SYSKEYDOWN as usize) {
-                let kb_struct = unsafe { *(lparam.0 as *const WindowsAndMessaging::KBDLLHOOKSTRUCT) };
-                let vk_code = kb_struct.vkCode;
-
-                if vk_code == KeyboardAndMouse::VK_SPACE.0 as u32 {
-                    // 获取 PreviewFile 实例并处理按键事件
-                    if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
-                        app.handle_key_down(vk_code);
-                    }
-                } 
-            }
-        });   
+            if vk_code == KeyboardAndMouse::VK_SPACE.0 as u32 {
+                // 获取 PreviewFile 实例并处理按键事件
+                if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
+                    app.handle_key_down(vk_code);
+                }
+            } 
+        }
         
         next_hook_result
     }
@@ -385,7 +383,6 @@ impl PreviewFile {
                     .min_inner_size(300.0, 300.0)
                     .on_page_load(move |window, payload| {
                         let cur_path = payload.url().path();
-
                         if cur_path == "/preview" {
                             match payload.event() {
                                 PageLoadEvent::Finished => {
