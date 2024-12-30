@@ -10,16 +10,7 @@
     "beforeBuildCommand": "pnpm build-only"
   },
   "app": {
-    "windows": [
-      {
-        "title": "quicklook",
-        "width": 800,
-        "height": 600,
-        "resizable": true,
-        "label": "main",
-        "visible": false
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": {
         "img-src": "'self' asset: http://asset.localhost blob: data:"
