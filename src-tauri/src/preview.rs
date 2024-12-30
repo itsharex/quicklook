@@ -1,8 +1,7 @@
 use std::sync::mpsc;
 use std::thread;
 use tauri::{
-    webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl,
-    WebviewWindowBuilder,
+    webview::PageLoadEvent, AppHandle, Error as TauriError,  Manager, WebviewUrl, WebviewWindowBuilder
 };
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
@@ -28,8 +27,9 @@ use windows::{
     },
 };
 
-#[path = "./helper.rs"]
+#[path = "./helper/mod.rs"]
 mod helper;
+use helper::{win, monitor};
 
 #[path = "./utils/mod.rs"]
 mod utils;
@@ -62,7 +62,7 @@ impl Selected {
     fn get_focused_type() -> Option<String> {
         let mut type_str: Option<String> = None;
         let hwnd_gfw = unsafe { WindowsAndMessaging::GetForegroundWindow() };
-        let class_name = helper::get_window_class_name(hwnd_gfw);
+        let class_name = win::get_window_class_name(hwnd_gfw);
         log::info!("class_name: {}", class_name);
 
         if class_name.contains("CabinetWClass") {
@@ -255,16 +255,16 @@ impl WebRoute {
     }
     pub fn get_route(type_str: &str, file_info: &UFile) -> WebRoute {
         match type_str {
-            "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
-            "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
-            "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
-            "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
-            "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
-            "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
-            "Book" => WebRoute::new("/preview/book".to_string(), file_info.clone()),
-            "Archive" => WebRoute::new("/preview/archive".to_string(), file_info.clone()),
-            "Doc" => WebRoute::new("/preview/document".to_string(), file_info.clone()),
-            _ => WebRoute::new("/preview/not-support".to_string(), file_info.clone()),
+            "Markdown" => WebRoute::new("/#/preview/md".to_string(), file_info.clone()),
+            "Text" => WebRoute::new("/#/preview/text".to_string(), file_info.clone()),
+            "Image" => WebRoute::new("/#/preview/image".to_string(), file_info.clone()),
+            "Video" => WebRoute::new("/#/preview/video".to_string(), file_info.clone()),
+            "Font" => WebRoute::new("/#/preview/font".to_string(), file_info.clone()),
+            "Code" => WebRoute::new("/#/preview/code".to_string(), file_info.clone()),
+            "Book" => WebRoute::new("/#/preview/book".to_string(), file_info.clone()),
+            "Archive" => WebRoute::new("/#/preview/archive".to_string(), file_info.clone()),
+            "Doc" => WebRoute::new("/#/preview/document".to_string(), file_info.clone()),
+            _ => WebRoute::new("/#/preview/not-support".to_string(), file_info.clone()),
         }
     }
 }
@@ -310,16 +310,26 @@ impl PreviewFile {
 
     // 全局键盘钩子的回调函数
     extern "system" fn keyboard_proc(ncode: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
-        if ncode == 0 && wparam.0 == WindowsAndMessaging::WM_KEYDOWN as usize {
-            let kb_struct = unsafe { *(lparam.0 as *const WindowsAndMessaging::KBDLLHOOKSTRUCT) };
-            let vk_code = kb_struct.vkCode;
+        // 确保消息被传递给其他应用程序
+        let next_hook_result = unsafe { WindowsAndMessaging::CallNextHookEx(None, ncode, wparam, lparam) };
+        #[cfg(debug_assertions)]
+        log::info!("Hook called - next_hook_result: {:?}", next_hook_result);
 
-            // 获取 PreviewFile 实例并处理按键事件
-            if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
-                app.handle_key_down(vk_code);
+        tauri::async_runtime::block_on(async {
+            if ncode >= 0 && (wparam.0 == WindowsAndMessaging::WM_KEYDOWN as usize || wparam.0 == WindowsAndMessaging::WM_SYSKEYDOWN as usize) {
+                let kb_struct = unsafe { *(lparam.0 as *const WindowsAndMessaging::KBDLLHOOKSTRUCT) };
+                let vk_code = kb_struct.vkCode;
+
+                if vk_code == KeyboardAndMouse::VK_SPACE.0 as u32 {
+                    // 获取 PreviewFile 实例并处理按键事件
+                    if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
+                        app.handle_key_down(vk_code);
+                    }
+                } 
             }
-        }
-        unsafe { WindowsAndMessaging::CallNextHookEx(None, ncode, wparam, lparam) }
+        });   
+        
+        next_hook_result
     }
 
     pub fn preview_file(app: AppHandle) -> Result<(), TauriError> {
@@ -333,6 +343,21 @@ impl PreviewFile {
             }
 
             let file_info = file_info.unwrap();
+
+            let monitor_info = monitor::get_monitor_info();
+            let scale = monitor_info.scale;
+            
+            let mut width = 1000.0;
+            let mut height = 600.0;
+
+            if monitor_info.width > 0.0 {
+                let tmp_width = monitor_info.width * 0.8;
+                let tmo_height = monitor_info.height * 0.8;
+                log::info!("tmp_width: {}, tmo_height: {}", tmp_width, tmo_height);
+                width = helper::get_scaled_size(tmp_width, scale);
+                height = helper::get_scaled_size(tmo_height, scale);
+            }
+
             match app.get_webview_window("preview") {
                 Some(window) => {
                     let type_str = file_info.get_file_type();
@@ -346,6 +371,7 @@ impl PreviewFile {
                     let _ = window.set_focus();
                 }
                 None => {
+
                     let result = WebviewWindowBuilder::new(
                         &app,
                         "preview",
@@ -353,8 +379,10 @@ impl PreviewFile {
                     )
                     .center()
                     .decorations(false)
-                    .skip_taskbar(true)
+                    .skip_taskbar(false)
                     .auto_resize()
+                    .inner_size(width, height)
+                    .min_inner_size(300.0, 300.0)
                     .on_page_load(move |window, payload| {
                         let cur_path = payload.url().path();
 
@@ -377,9 +405,11 @@ impl PreviewFile {
                     })
                     .focused(true)
                     .visible_on_all_workspaces(true)
+                    
                     .build();
 
                     if let Ok(preview) = result {
+                        
                         let _ = preview.show();
                     }
                 }

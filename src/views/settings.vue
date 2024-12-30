@@ -1,76 +1,75 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { BaseDirectory } from '@tauri-apps/plugin-fs'
+// import { emit } from '@tauri-apps/api/event'
+import { readTextFile } from '@/utils'
+import { app } from '@tauri-apps/api'
 
-const imageList = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'apng']
-const imageChecked = ref([])
+// // const updateConfig = async (val: string) => {
+// //     const blob = new Blob([val], { type: 'application/json' })
+// //     const arrayBuffer = new Uint8Array(await blob.arrayBuffer())
+
+// //     writeFile('config.json', arrayBuffer, { baseDir: BaseDirectory.Resource })
+// //         .then(() => {
+// //             console.log('写入成功')
+// //             emit('config_updated')
+// //         })
+// //         .catch(e => {
+// //             console.error(e)
+// //         })
+// // }
+
+const getConfig = async () => {
+    const config = await readTextFile('config.json', { baseDir: BaseDirectory.Resource })
+    const data = JSON.parse(config)
+    console.log(data)
+    const target = [
+        { name: 'Markdown', code: 'Md', data: data['preview.markdown.checked'] },
+        { name: '图片', code: 'Image', data: data['preview.image.checked'] },
+        { name: '视频', code: 'Video', data: data['preview.video.checked'] },
+        { name: '文档', code: 'Doc', data: data['preview.doc.checked'] },
+        { name: '代码', code: 'Code', data: data['preview.code.checked'] },
+        { name: '字体', code: 'Font', data: data['preview.font.checked'] },
+        { name: '压缩包', code: 'Archive', data: data['preview.archive.checked'] },
+        { name: '书籍', code: 'Book', data: data['preview.book.checked'] },
+    ]
+    return target
+}
+
+interface Config {
+    name: string
+    code: string
+    data: Array<string>
+}
+
+const config = ref<Array<Config>>()
+const version = ref<string>('')
+onMounted(async () => {
+    config.value = await getConfig()
+    console.log(config.value)
+    version.value = await app.getVersion()
+})
 </script>
 
 <template>
     <div class="setting">
-        <h1>This is an settings page</h1>
         <div class="setting-item support">
-            <h2>支持的格式</h2>
-            <div class="support-item">
-                <div class="support-item-header">
-                    <span>图像（Image）</span>
-                </div>
-                <div class="support-item-body">
-                    <el-checkbox-group class="support-item-body-wrap" v-model="imageChecked">
-                        <template v-for="item in imageList" :key="item">
-                            <div class="support-item-body-item">
-                                <el-checkbox :value="item" :label="item" />
-                            </div>
-                        </template>
-                    </el-checkbox-group>
-                </div>
-            </div>
-            <div class="support-item">
-                <div class="support-item-header">
-                    <span>视频（Video）</span>
-                </div>
-                <div class="support-item-body">
-                    <el-checkbox-group class="support-item-body-wrap" v-model="imageChecked">
-                        <template v-for="item in imageList" :key="item">
-                            <div class="support-item-body-item">
-                                <el-checkbox :value="item" :label="item" />
-                            </div>
-                        </template>
-                    </el-checkbox-group>
-                </div>
-            </div>
-            <div class="support-item">
-                <div class="support-item-header">
-                    <span>字体（Font）</span>
-                </div>
-                <div class="support-item-body">
-                    <el-checkbox-group class="support-item-body-wrap" v-model="imageChecked">
-                        <template v-for="item in imageList" :key="item">
-                            <div class="support-item-body-item">
-                                <el-checkbox :value="item" :label="item" />
-                            </div>
-                        </template>
-                    </el-checkbox-group>
-                </div>
-            </div>
-            <div class="support-item">
-                <div class="support-item-header">
-                    <span>书籍（Book）</span>
-                </div>
-                <div class="support-item-body">
-                    <el-checkbox-group class="support-item-body-wrap" v-model="imageChecked">
-                        <template v-for="item in imageList" :key="item">
-                            <div class="support-item-body-item">
-                                <el-checkbox :value="item" :label="item" />
-                            </div>
-                        </template>
-                    </el-checkbox-group>
+            <p class="setting-item-title">支持的格式</p>
+            <div>
+                <div class="support-item" v-for="type in config" :key="type.code">
+                    <div class="support-item-header">
+                        <span>{{ type.code }}：</span>
+                    </div>
+                    <div class="support-item-body">
+                        {{ type.data.join('、') }}
+                    </div>
                 </div>
             </div>
         </div>
         <div class="setting-item">
-            <h2>更新</h2>
+            <p class="setting-item-title">版本</p>
             <div>
-                <el-button type="primary">检查更新</el-button>
+                <span>app 版本：{{ version }}</span>
             </div>
         </div>
     </div>
@@ -80,31 +79,27 @@ const imageChecked = ref([])
 .setting {
     padding: 16px;
     width: 100%;
+    &-item {
+        &-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+    }
 }
 .support {
     &-item {
-        padding: 0 12px;
-        & + & {
-            margin-bottom: 24px;
-        }
+        padding: 4px 6px;
+        display: flex;
+        align-items: flex-start;
 
         &-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #ebeef5;
-            padding: 12px 0;
-        }
-
-        &-body {
-            padding: 12px 16px;
-            .support-item-body-wrap {
-                display: flex;
-                flex-wrap: wrap;
-                .support-item-body-item {
-                    flex: 0 0 80px;
-                }
-            }
+            flex: 0 0 70px;
+            min-width: 70px;
+            justify-content: flex-end;
         }
     }
 }

@@ -105,7 +105,7 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("md", "Markdown");
     // DOC 文件
     // map.insert("doc", "Doc");
-    // map.insert("docx", "Doc");
+    map.insert("docx", "Doc");
     map.insert("xls", "Doc");
     map.insert("xlsx", "Doc");
     map.insert("xlsm", "Doc");

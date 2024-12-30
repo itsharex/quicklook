@@ -4,7 +4,7 @@ use tauri::{
     App, Manager, WebviewUrl, WebviewWindowBuilder
 };
 
-#[path = "helper.rs"]
+#[path = "./helper/mod.rs"]
 mod helper;
 
 pub fn create_tray(app: &mut App) -> tauri::Result<()> {

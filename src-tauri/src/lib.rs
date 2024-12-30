@@ -1,11 +1,16 @@
-use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
+use tauri::{Listener, Manager};
+use tauri_plugin_autostart::MacosLauncher;
+#[cfg(not(debug_assertions))]
+use tauri_plugin_autostart::ManagerExt;
 
 mod preview;
 mod tray;
+mod helper;
 
 #[path = "./command.rs"]
 mod command;
-use command::{archive, document, show_open_with_dialog};
+use command::{archive, document, show_open_with_dialog, get_monitor_info, get_default_program_name};
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -20,7 +25,8 @@ pub fn run() {
             Some(vec![]),
         ))
         .setup(|app| {
-            app.handle().plugin(
+            let handle = app.handle();
+            handle.plugin(
                 tauri_plugin_log::Builder::default()
                     .level(log::LevelFilter::Info)
                     .max_file_size(50000)
@@ -28,10 +34,28 @@ pub fn run() {
                     .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
                     .build(),
             )?;
+
+            let config = helper::config::read_config(handle)?;
+            app.manage(config);
+            
+            let handle_clone = handle.clone();
+            let _ = app.listen("config_update", move |event| {
+                let handle = handle_clone.clone();
+                
+                println!("update event: {:?}", event);
+                if let Ok(conf) = helper::config::read_config(&handle_clone) {
+                    handle.manage(conf);
+                }
+               
+            });
             
             // 自动启动
-            let autostart_manager = app.autolaunch();
-            let _ = autostart_manager.enable();
+            #[cfg(not(debug_assertions))]
+            {
+                let autostart_manager = app.autolaunch();
+                let _ = autostart_manager.enable();
+            }
+            
             // 创建托盘
             tray::create_tray(app)?;
             // 初始化预览文件
@@ -43,7 +67,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             show_open_with_dialog,
             archive,
-            document
+            document,
+            get_monitor_info,
+            get_default_program_name
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

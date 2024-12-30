@@ -26,6 +26,7 @@
     "core:window:allow-set-resizable",
     "core:event:allow-listen",
     "core:path:allow-extname",
+    "core:app:allow-version",
     {
       "identifier": "fs:allow-lstat",
       "allow": [

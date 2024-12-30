@@ -131,8 +131,8 @@ export const formatBytes = (size: number): string => {
  * @param path string
  * @returns
  */
-export const readTextFile = async (path: string): Promise<string> => {
-    const file = await readFile(path)
+export const readTextFile = async (path: string, conf = {}): Promise<string> => {
+    const file = await readFile(path, conf)
     if (file instanceof Uint8Array) {
         return new TextDecoder().decode(file)
     } else {
