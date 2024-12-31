@@ -4,9 +4,9 @@ use tauri::{
     webview::PageLoadEvent, AppHandle, Error as TauriError,  Manager, WebviewUrl, WebviewWindowBuilder
 };
 use windows::{
-    core::{w, Error as WError, Interface, VARIANT},
+    core::{w, Error as WError, IUnknown, Interface, VARIANT},
     Win32::{
-        Foundation::{LPARAM, LRESULT, WPARAM},
+        Foundation::{BOOL, HWND, LPARAM, LRESULT, WPARAM},
         System::{
             Com::{
                 CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch, IServiceProvider,
@@ -16,13 +16,11 @@ use windows::{
             Variant,
         },
         UI::{
-            Input::KeyboardAndMouse,
+            Input::KeyboardAndMouse, 
             Shell::{
-                IShellBrowser, IShellItemArray, IShellWindows, ShellWindows,
-                SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SVGIO_SELECTION,
-                SWFO_NEEDDISPATCH,
-            },
-            WindowsAndMessaging,
+                IShellBrowser, IShellItemArray, IShellView, IShellWindows, ShellWindows, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SVGIO_SELECTION, SWFO_NEEDDISPATCH
+            }, 
+            WindowsAndMessaging
         },
     },
 };
@@ -54,6 +52,7 @@ impl Selected {
             return match focused_type.as_str() {
                 "explorer" => unsafe { Self::get_select_file_from_explorer().ok() },
                 "desktop" => unsafe { Self::get_select_file_from_desktop().ok() },
+                "dialog" => Self::get_select_file_from_dialog().ok(),
                 _ => None,
             };
         }
@@ -72,6 +71,8 @@ impl Selected {
             if defview.is_ok() {
                 type_str = Some("desktop".to_string());
             }
+        }else if class_name.contains("#32770") {
+            type_str = Some("dialog".to_string());
         }
         log::info!("type_str: {:?}", type_str);
         type_str
@@ -219,6 +220,98 @@ impl Selected {
         });
         let target_path = rx.recv().unwrap();
         Ok(target_path)
+    }
+    fn get_select_file_from_dialog() -> Result<String, WError> {
+        let (tx, rx) = mpsc::channel();
+        
+        unsafe {
+            // 如何将shell_def_view 转为 IShellBrowser
+            thread::spawn(move || {
+                let mut target_path = String::new();
+                let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow();
+                println!("hwnd_gfw: {:?}", hwnd_gfw);
+                
+                let mut def_view: Option<HWND> = None;
+                let _ = WindowsAndMessaging::EnumChildWindows(hwnd_gfw, Some(Self::get_select_file_from_dialog_proc), LPARAM(&mut def_view as *mut _ as isize));
+
+                if def_view.is_none() {
+                    tx.send(target_path).unwrap();
+                    return;
+                }
+                
+                let def_view = def_view.unwrap();
+                println!("def_view: {:?}", def_view);
+
+                let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+
+                let mut unknown: Option<IUnknown> = None;
+                let msg_id = WindowsAndMessaging::RegisterWindowMessageW(w!("ShellView"));
+                println!("msg_id: {:?}", msg_id);
+                let result = WindowsAndMessaging::SendMessageW(
+                    def_view,
+                    msg_id,
+                    WPARAM(0x0),
+                    LPARAM(&mut unknown as *mut _ as isize)
+                );                
+
+                println!("result: {:?}", result);
+                println!("unknown: {:?}", unknown);
+                if unknown.is_none() {
+                    tx.send(target_path).unwrap();
+                    return;
+                }
+                let unknown = unknown.unwrap();
+                
+                let shell_view = unknown.cast::<IShellView>().ok();
+                if let Some(shell_view) = shell_view {
+                    let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION);
+
+                    if shell_items.is_err() {
+                        return;
+                    }
+                    println!("shell_items: {:?}", shell_items);
+                    let shell_items = shell_items.unwrap();
+                    let count = shell_items.GetCount().unwrap_or_default();
+                    for i in 0..count {
+                        let shell_item = shell_items.GetItemAt(i).unwrap();
+
+                        // 如果不是文件对象则继续循环
+                        if let Ok(attrs) = shell_item.GetAttributes(SFGAO_FILESYSTEM) {
+                            log::info!("attrs: {:?}", attrs);
+                            if attrs.0 == 0 {
+                                continue;
+                            }
+                        }
+
+                        if let Ok(display_name) = shell_item.GetDisplayName(SIGDN_FILESYSPATH) {
+                            target_path = display_name.to_string().unwrap();
+                            break;
+                        }
+                        if let Ok(display_name) =
+                            shell_item.GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING)
+                        {
+                            target_path = display_name.to_string().unwrap();
+                            break;
+                        }
+                    }
+                    println!("target_path: {:?}", target_path);
+                }
+                
+                CoUninitialize();
+                tx.send(target_path).unwrap();
+            });
+        }
+        let target_path = rx.recv().unwrap();
+        Ok(target_path)
+    }
+    unsafe extern "system" fn get_select_file_from_dialog_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
+        let list_view = lparam.0 as *mut Option<HWND>;
+        let class_name = win::get_window_class_name(hwnd);
+        if class_name.contains("SHELLDLL_DefView") {
+            *list_view = Some(hwnd);
+            return BOOL(0);
+        }
+        BOOL(1)
     }
 }
 
