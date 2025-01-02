@@ -36,7 +36,6 @@ const init = (path: string) => {
 }
 onMounted(() => {
     fileInfo.value = route.query as unknown as FileInfo
-    console.log(fileInfo.value)
     init(convertFileSrc(fileInfo.value.path))
 })
 </script>
@@ -44,9 +43,7 @@ onMounted(() => {
 <template>
     <LayoutPreview :file="fileInfo">
         <div class="image-support">
-            <div class="image-support-inner" id="canvas">
-                <!--        <img :src="props.src" alt="image" crossorigin="anonymous">-->
-            </div>
+            <div class="image-support-inner" id="canvas"></div>
         </div>
     </LayoutPreview>
 </template>

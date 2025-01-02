@@ -7,29 +7,35 @@ import { readTextFile } from '@/utils'
 import { createMd } from '@/utils/markdown/index'
 
 import MdViewer from '@/components/md-viewer/index.vue'
+import type MarkdownIt from 'markdown-it'
 
 const route = useRoute()
 
-const md = await createMd()
+let md: MarkdownIt | null = null
 
 defineOptions({
     name: 'MdSupport',
 })
 const file = ref<FileInfo>()
 const content = ref<string>()
+const loading = ref<boolean>(true)
 
 onMounted(async () => {
+    if (md === null) {
+        md = await createMd()
+    }
+    loading.value = true
     file.value = route?.query as unknown as FileInfo
     const path = file.value.path as string
-    console.log('path', path)
     const txt = await readTextFile(path)
 
     content.value = md.render(txt)
+    loading.value = false
 })
 </script>
 
 <template>
-    <LayoutPreview :file="file">
+    <LayoutPreview :file="file" :loading="loading">
         <div class="md-support">
             <div class="md-support-inner" id="markdown-body">
                 <MdViewer :key="file?.path" :content="content" />

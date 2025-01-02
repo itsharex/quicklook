@@ -82,7 +82,6 @@ onMounted(async () => {
     const val = fileInfo.value.path as string
     const txt: Array<ExtractedFile> = await invoke('archive', { path: val, mode: 'zip' })
     const treeData = buildFileTree(txt)
-    console.log('path', treeData)
 
     content.value = treeData.children as Array<FileNode> // 根节点是虚拟的，所以直接取子节点
 })
