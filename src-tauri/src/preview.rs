@@ -9,16 +9,18 @@ use windows::{
         Foundation::{BOOL, HWND, LPARAM, LRESULT, WPARAM},
         System::{
             Com::{
-                CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch, IServiceProvider, CLSCTX_LOCAL_SERVER, CLSCTX_SERVER, COINIT_APARTMENTTHREADED, COINIT_MULTITHREADED
+                CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch, IServiceProvider, CLSCTX_INPROC_SERVER, CLSCTX_LOCAL_SERVER, CLSCTX_SERVER, COINIT_APARTMENTTHREADED, COINIT_DISABLE_OLE1DDE, COINIT_MULTITHREADED
             },
             SystemServices::SFGAO_FILESYSTEM,
             Variant,
         },
         UI::{
-            Controls, 
+            Controls::{self, LVM_GETITEMCOUNT, LVM_GETNEXTITEM, LVM_GETSELECTEDCOUNT, LVNI_SELECTED}, 
             Input::KeyboardAndMouse, 
             Shell::{
-                IShellBrowser, IShellItemArray, IShellView, IShellWindows, ShellWindows, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SVGIO_SELECTION, SWFO_NEEDDISPATCH
+                IFileDialog, IShellBrowser, IShellFolder, IShellItemArray, IShellView, IShellWindows, 
+                ShellWindows, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SVGIO_SELECTION, 
+                SWFO_NEEDDISPATCH, IFileSaveDialog, FileOpenDialog, IFileOpenDialog, FileSaveDialog
             }, 
             WindowsAndMessaging
         },
@@ -187,92 +189,91 @@ impl Selected {
     
     
     fn get_select_file_from_dialog() -> Result<String, WError> {
-        let (tx, rx) = mpsc::channel();
+        let mut target_path = String::new();
+        let fw_hwnd = unsafe {
+            WindowsAndMessaging::GetForegroundWindow()
+        };
+        println!("fw_hwnd: {:?}", fw_hwnd);
         
-        unsafe {
-            // 如何将shell_def_view 转为 IShellBrowser
-            thread::spawn(move || {
-                let mut target_path = String::new();
-                let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow();
-                println!("hwnd_gfw: {:?}", hwnd_gfw);
-                // dump_window_hierarchy(hwnd_gfw);
-                
-                let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
-                
-                let mut def_view: Option<HWND> = None;
-                let _ = WindowsAndMessaging::EnumChildWindows(hwnd_gfw, Some(Self::get_select_file_from_dialog_proc), LPARAM(&mut def_view as *mut _ as isize));
-                
-                if def_view.is_none() {
-                    tx.send(target_path).unwrap();
-                    return;
-                }
-                
-                let def_view = def_view.unwrap();
-                println!("def_view: {:?}", def_view);
-                // let list_view_hwnd = WindowsAndMessaging::FindWindowExW(def_view, None, w!("DirectUIHWND"), None);
-                // if list_view_hwnd.is_err() {
-                //     tx.send(target_path).unwrap();
-                //     return;
-                // }
-                // let list_view_hwnd = list_view_hwnd.unwrap();
-                // println!("list_view_hwnd: {:?}", list_view_hwnd);
-                // let list_view_classname = win::get_window_class_name(list_view_hwnd);
-                // if !list_view_classname.contains("DirectUIHWND") {
-                //     tx.send(target_path).unwrap();
-                //     return;
-                // }           
-
-
-                let msg_id = WindowsAndMessaging::RegisterWindowMessageW(w!("ShellView_GetIShellBrowser"));
-                println!("msg_id: {:?}", msg_id);
-
-                let mut view_dispatch: Option<IShellBrowser> = None;
-                let tmp_q = WindowsAndMessaging::SendMessageW(
-                    def_view,
-                    msg_id,
-                    WPARAM(0),
-                    LPARAM(&mut view_dispatch as *mut _ as isize)
-                );
-                println!("tmp_q: {:?}", tmp_q);
-                println!("view_dispatch: {:?}", view_dispatch);
-
-                let mut unknown: Option<IUnknown> = None;
-                let result = WindowsAndMessaging::SendMessageW(
-                    def_view,
-                    msg_id,
-                    WPARAM(0x0),
-                    LPARAM(&mut unknown as *mut _ as isize)
-                );                
-
-                println!("result: {:?}", result);
-                println!("unknown: {:?}", unknown);
-                if unknown.is_none() {
-                    tx.send(target_path).unwrap();
-                    return;
-                }
-                let unknown = unknown.unwrap();
-                
-                let shell_view = unknown.cast::<IShellView>().ok();
-                if let Some(shell_view) = shell_view {
-                    target_path = Self::get_selected_file_path_from_shellview(shell_view);
-                    println!("target_path: {:?}", target_path);
-                }
-                
-                CoUninitialize();
-                tx.send(target_path).unwrap();
-            });
+        // 获取选中文件窗口的 Text
+        let seleced_file_hwnd = unsafe {
+            WindowsAndMessaging::FindWindowExW(fw_hwnd, None, w!("ComboBoxEx32"), None)
+        };
+        println!("seleced_file_hwnd: {:?}", seleced_file_hwnd);
+        if seleced_file_hwnd.is_err() {
+            return Ok(target_path);
         }
-        let target_path = rx.recv().unwrap();
+        let seleced_file_hwnd = seleced_file_hwnd.unwrap();
+        let mut real_selected_file_hwnd: Option<HWND> = None;
+        let _ = unsafe {
+            WindowsAndMessaging::EnumChildWindows(seleced_file_hwnd, Some(Self::get_select_file_from_dialog_proc), LPARAM(&mut real_selected_file_hwnd as *const _ as _))
+        };
+        println!("real_selected_file_hwnd: {:?}", real_selected_file_hwnd);
+        if real_selected_file_hwnd.is_none() {
+            return Ok(target_path);
+        }
+        let real_selected_file_hwnd = real_selected_file_hwnd.unwrap();
+        let seleced_file_title = win::get_window_text(real_selected_file_hwnd);
+        println!("seleced_file_title: {:?}", seleced_file_title);
+
+        // 获取搜索框的 Text
+        let mut breadcrumb_parent_hwnd: Option<HWND> = None;
+        let _ = unsafe {
+            WindowsAndMessaging::EnumChildWindows(fw_hwnd, Some(Self::get_select_file_from_dialog_proc), LPARAM(&mut breadcrumb_parent_hwnd as *const _ as _))
+        };
+        if breadcrumb_parent_hwnd.is_none() {
+            return Ok(target_path);
+        }
+        let breadcrumb_parent_hwnd = breadcrumb_parent_hwnd.unwrap();
+        let breadcrumb_hwnd = unsafe {
+            WindowsAndMessaging::FindWindowExW(breadcrumb_parent_hwnd, None, w!("ToolbarWindow32"), None)
+        };
+        if breadcrumb_hwnd.is_err() {
+            return Ok(target_path);
+        }
+        let breadcrumb_hwnd = breadcrumb_hwnd.unwrap();
+        let breadcrumb_title = win::get_window_text(breadcrumb_hwnd);
+        println!("breadcrumb_title: {:?}", breadcrumb_title);
+
+        target_path = format!("{}\\{}", breadcrumb_title.replace("地址：", ""), seleced_file_title);
+        println!("target_path: {:?}", target_path);
+            
         Ok(target_path)
     }
     unsafe extern "system" fn get_select_file_from_dialog_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
         let list_view = lparam.0 as *mut Option<HWND>;
         let class_name = win::get_window_class_name(hwnd);
-        if class_name.contains("DirectUIHWND") {
+        if class_name.contains("Breadcrumb Parent") | class_name.contains("Edit") | class_name.contains("SHELLDLL_DefView") {
             *list_view = Some(hwnd);
             return BOOL(0);
         }
         BOOL(1)
+    }
+
+    unsafe fn get_shellview_from_hwnd(hwnd: HWND) -> Option<IShellView> {
+        // 定义 WM 消息
+        const SFVM_GETSERVICEPROVIDER: u32 = WindowsAndMessaging::WM_USER + 7;
+        
+        let mut service_provider: Option<IServiceProvider> = None;
+        WindowsAndMessaging::SendMessageW(
+            hwnd,
+            SFVM_GETSERVICEPROVIDER,
+            WPARAM(0),
+            LPARAM(&mut service_provider as *mut _ as isize)
+        );
+
+        println!("service_provider: {:?}", service_provider);
+        
+        if let Some(provider) = service_provider {
+            // 获取 IShellBrowser
+            if let Ok(browser) = provider.QueryService::<IShellBrowser>(&IShellBrowser::IID) {
+                // 获取 IShellView
+                return browser.QueryActiveShellView().ok();
+            }
+        }
+
+
+        None
     }
 
     unsafe fn get_selected_file_path_from_shellview(shell_view: IShellView) -> String {
