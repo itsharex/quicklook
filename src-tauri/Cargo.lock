@@ -129,6 +129,7 @@ dependencies = [
  "docx-rs",
  "infer",
  "log",
+ "regex",
  "serde",
  "serde_json",
  "tauri",
