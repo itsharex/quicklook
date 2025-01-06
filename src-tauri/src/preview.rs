@@ -479,6 +479,7 @@ impl PreviewFile {
 
             let monitor_info = monitor::get_monitor_info();
             let scale = monitor_info.scale;
+            println!("scale: {}", scale);
             
             let mut width = 1000.0;
             let mut height = 600.0;
@@ -489,6 +490,7 @@ impl PreviewFile {
                 log::info!("tmp_width: {}, tmo_height: {}", tmp_width, tmo_height);
                 width = helper::get_scaled_size(tmp_width, scale);
                 height = helper::get_scaled_size(tmo_height, scale);
+
             }
 
             match app.get_webview_window("preview") {
