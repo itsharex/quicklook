@@ -19,9 +19,6 @@ onMounted(async () => {
     const path = fileInfo.value.path as string
 
     const txt = await readTextFile(path)
-
-    console.log('txt', txt)
-
     content.value = txt
 })
 </script>

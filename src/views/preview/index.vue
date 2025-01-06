@@ -1,24 +1,10 @@
-<script setup lang="ts">
-import { Loading } from '@element-plus/icons-vue'
-</script>
+<script setup lang="ts"></script>
 
 <template>
     <router-view v-slot="{ Component }">
         <template v-if="Component">
             <transition mode="out-in">
-                <suspense>
-                    <!-- 主要内容 -->
-                    <component :is="Component"></component>
-                    <!-- 加载中状态 -->
-                    <template #fallback>
-                        <div class="preview-loading">
-                            <div>
-                                <Loading class="spin" />
-                                <p>加载中...</p>
-                            </div>
-                        </div>
-                    </template>
-                </suspense>
+                <component :is="Component"></component>
             </transition>
         </template>
     </router-view>

@@ -22,7 +22,6 @@ import { app } from '@tauri-apps/api'
 const getConfig = async () => {
     const config = await readTextFile('config.json', { baseDir: BaseDirectory.Resource })
     const data = JSON.parse(config)
-    console.log(data)
     const target = [
         { name: 'Markdown', code: 'Md', data: data['preview.markdown.checked'] },
         { name: '图片', code: 'Image', data: data['preview.image.checked'] },
@@ -46,7 +45,6 @@ const config = ref<Array<Config>>()
 const version = ref<string>('')
 onMounted(async () => {
     config.value = await getConfig()
-    console.log(config.value)
     version.value = await app.getVersion()
 })
 </script>

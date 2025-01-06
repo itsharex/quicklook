@@ -6,23 +6,21 @@ use tauri::{
 use windows::{
     core::{w, Error as WError, Interface, VARIANT},
     Win32::{
-        Foundation::{LPARAM, LRESULT, WPARAM},
+        Foundation::{BOOL, HWND, LPARAM, LRESULT, WPARAM},
         System::{
             Com::{
-                CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch, IServiceProvider,
-                CLSCTX_SERVER, COINIT_APARTMENTTHREADED,
-            },
-            SystemServices::SFGAO_FILESYSTEM,
-            Variant,
+                CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch, IServiceProvider, CLSCTX_INPROC_SERVER, CLSCTX_LOCAL_SERVER, COINIT_APARTMENTTHREADED
+            }, 
+            SystemServices::SFGAO_FILESYSTEM, 
+            Variant::{self}
         },
         UI::{
-            Input::KeyboardAndMouse,
+            Accessibility::{CUIAutomation, IUIAutomation, IUIAutomationSelectionPattern, UIA_NamePropertyId,  UIA_SelectionPatternId}, 
+            Input::KeyboardAndMouse, 
             Shell::{
-                IShellBrowser, IShellItemArray, IShellWindows, ShellWindows,
-                SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SVGIO_SELECTION,
-                SWFO_NEEDDISPATCH,
-            },
-            WindowsAndMessaging,
+                IShellBrowser, IShellItemArray, IShellView, IShellWindows, ShellWindows, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SVGIO_SELECTION, SWFO_NEEDDISPATCH
+            }, 
+            WindowsAndMessaging
         },
     },
 };
@@ -46,6 +44,7 @@ struct Selected;
 impl Selected {
     pub fn new() -> Option<String> {
         let path = Self::get_selected_file();
+        println!("path: {:?}", path);
         return path;
     }
 
@@ -54,6 +53,12 @@ impl Selected {
             return match focused_type.as_str() {
                 "explorer" => unsafe { Self::get_select_file_from_explorer().ok() },
                 "desktop" => unsafe { Self::get_select_file_from_desktop().ok() },
+                "dialog" => {
+                    match Self::get_select_file_from_dialog() {
+                        Ok(result) => Some(result),
+                        Err(err) => None
+                    }
+                },
                 _ => None,
             };
         }
@@ -72,6 +77,8 @@ impl Selected {
             if defview.is_ok() {
                 type_str = Some("desktop".to_string());
             }
+        }else if class_name.contains("#32770") {
+            type_str = Some("dialog".to_string());
         }
         log::info!("type_str: {:?}", type_str);
         type_str
@@ -87,7 +94,7 @@ impl Selected {
 
             let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow();
             let shell_windows: IShellWindows =
-                CoCreateInstance(&ShellWindows, None, CLSCTX_SERVER).unwrap();
+                CoCreateInstance(&ShellWindows, None, CLSCTX_LOCAL_SERVER).unwrap();
             let result_hwnd =
                 WindowsAndMessaging::FindWindowExW(hwnd_gfw, None, w!("ShellTabWindowClass"), None)
                     .unwrap();
@@ -97,23 +104,14 @@ impl Selected {
 
             for i in 0..count {
                 let variant = VARIANT::from(i);
-                let window: IDispatch = shell_windows.Item(&variant).unwrap();
-                let mut service_provider: Option<IServiceProvider> = None;
-                window
-                    .query(
-                        &IServiceProvider::IID,
-                        &mut service_provider as *mut _ as *mut _,
-                    )
-                    .ok()
-                    .unwrap();
-                if service_provider.is_none() {
+                let dispatch: IDispatch = shell_windows.Item(&variant).unwrap();
+
+                let shell_browser = Self::dispath2browser(dispatch);
+
+                if shell_browser.is_none() {
                     continue;
                 }
-                let shell_browser = service_provider
-                    .unwrap()
-                    .QueryService::<IShellBrowser>(&IShellBrowser::IID)
-                    .unwrap();
-
+                let shell_browser = shell_browser.unwrap();
                 // 调用 GetWindow 可能会阻塞 GUI 消息
                 let phwnd = shell_browser.GetWindow().unwrap();
                 if hwnd_gfw.0 != phwnd.0 && result_hwnd.0 != phwnd.0 {
@@ -121,35 +119,7 @@ impl Selected {
                 }
 
                 let shell_view = shell_browser.QueryActiveShellView().unwrap();
-                let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION);
-
-                if shell_items.is_err() {
-                    continue;
-                }
-                let shell_items = shell_items.unwrap();
-                let count = shell_items.GetCount().unwrap_or_default();
-                for i in 0..count {
-                    let shell_item = shell_items.GetItemAt(i).unwrap();
-
-                    // 如果不是文件对象则继续循环
-                    if let Ok(attrs) = shell_item.GetAttributes(SFGAO_FILESYSTEM) {
-                        log::info!("attrs: {:?}", attrs);
-                        if attrs.0 == 0 {
-                            continue;
-                        }
-                    }
-
-                    if let Ok(display_name) = shell_item.GetDisplayName(SIGDN_FILESYSPATH) {
-                        target_path = display_name.to_string().unwrap();
-                        break;
-                    }
-                    if let Ok(display_name) =
-                        shell_item.GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING)
-                    {
-                        target_path = display_name.to_string().unwrap();
-                        break;
-                    }
-                }
+                target_path = Self::get_selected_file_path_from_shellview(shell_view);
             }
 
             CoUninitialize();
@@ -171,8 +141,13 @@ impl Selected {
             let mut target_path = String::new();
             let hwnd_gfw = WindowsAndMessaging::GetForegroundWindow(); // 获取当前活动窗口句柄
             log::info!("hwnd_gfw: {:?}", hwnd_gfw);
-            let shell_windows: IShellWindows =
-                CoCreateInstance(&ShellWindows, None, CLSCTX_SERVER).unwrap();
+            let shell_windows: Result<IShellWindows, WError>  =
+                CoCreateInstance(&ShellWindows, None, CLSCTX_LOCAL_SERVER);
+            if shell_windows.is_err() {
+                log::info!("shell_windows 不存在");
+                tx.send(target_path.clone()).unwrap();
+            }
+            let shell_windows = shell_windows.unwrap();
 
             let pvar_loc: VARIANT = Variant::VariantInit();
 
@@ -186,39 +161,199 @@ impl Selected {
                     windows::Win32::UI::Shell::SWC_DESKTOP,
                     &mut phwnd,
                     SWFO_NEEDDISPATCH,
-                )
-                .unwrap();
-            let mut service_provider: Option<IServiceProvider> = None;
-            dispatch
-                .query(
-                    &IServiceProvider::IID,
-                    &mut service_provider as *mut _ as *mut _,
-                )
-                .ok()
-                .unwrap();
-
-            let shell_browser = service_provider
-                .unwrap()
-                .QueryService::<IShellBrowser>(&IShellBrowser::IID)
-                .unwrap();
-           
-            let shell_view = shell_browser.QueryActiveShellView().unwrap();
-            let shell_items = shell_view
-                .GetItemObject::<IShellItemArray>(SVGIO_SELECTION)
-                .unwrap();
-
-            let count = shell_items.GetCount().unwrap_or_default();
-            for i in 0..count {
-                let shell_item = shell_items.GetItemAt(i).unwrap();
-                let display_name = shell_item.GetDisplayName(SIGDN_FILESYSPATH).unwrap();
-                target_path = display_name.to_string().unwrap();
-                break;
+                );
+            if dispatch.is_err() {
+                log::info!("dispatch 不存在");
+                tx.send(target_path.clone()).unwrap();
             }
+
+            let shell_browser = Self::dispath2browser(dispatch.unwrap());
+            if shell_browser.is_none() {
+                log::info!("shell_browser 不存在");
+                tx.send(target_path.clone()).unwrap();
+            }
+            let shell_browser = shell_browser.unwrap();
+
+            let phwnd = shell_browser.GetWindow().unwrap();
+            let top = WindowsAndMessaging::GetAncestor(phwnd, WindowsAndMessaging::GA_ROOT);
+
+            if !hwnd_gfw.eq(&top) {
+               log::info!("top hwnd 不相等");
+               tx.send(target_path.clone()).unwrap();
+            }
+
+            let shell_view = shell_browser.QueryActiveShellView();
+            if shell_view.is_err() {
+                log::info!("shell_view 不存在");
+                tx.send(target_path.clone()).unwrap();
+            }
+
+            target_path = Self::get_selected_file_path_from_shellview(shell_view.unwrap());
             CoUninitialize();
             tx.send(target_path).unwrap();
         });
         let target_path = rx.recv().unwrap();
         Ok(target_path)
+    }
+     
+    fn get_select_file_from_dialog() -> Result<String, WError> {
+        let mut target_path = String::new();
+        let fw_hwnd = unsafe {
+            WindowsAndMessaging::GetForegroundWindow()
+        };
+        println!("fw_hwnd: {:?}", fw_hwnd);
+
+        let defview = unsafe {
+            let mut tmp: Option<HWND> = None;
+            let _ = WindowsAndMessaging::EnumChildWindows(fw_hwnd, Some(Self::dialog_defview_proc), LPARAM(&mut tmp as *mut _ as isize));
+            tmp
+        };
+
+        if defview.is_none() {
+            log::info!("defview 不存在");
+            return Ok(target_path);
+        }
+        let defview = defview.unwrap();
+
+        let listview = unsafe {
+            WindowsAndMessaging::FindWindowExW(defview, None, w!("DirectUIHWND"), None)
+        };
+        if listview.is_err() {
+            log::info!("listview(DirectUIHWND) 不存在");
+            return  Ok(target_path);
+        }
+        let listview = listview.unwrap();
+        let seleced_file_title = unsafe {
+            let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+            // 通过 ui automation 获取选中文件
+            let automation: IUIAutomation = CoCreateInstance(
+                &CUIAutomation,
+                None,
+                CLSCTX_INPROC_SERVER
+            )?;
+            // 获取列表元素
+            let list_element = automation.ElementFromHandle(listview)?;
+            
+            // 获取选中项
+            let selection_pattern = list_element.GetCurrentPattern(UIA_SelectionPatternId)?;
+            let selection = selection_pattern.cast::<IUIAutomationSelectionPattern>()?;
+            
+            // 获取选中的元素
+            let selected = selection.GetCurrentSelection()?;
+            let count = selected.Length()?;
+            let mut file_name = String::new();
+            if count > 0 {
+                // 获取第一个选中项
+                let item = selected.GetElement(0)?;
+                // 获取文件名
+                let name = item.GetCurrentPropertyValue(UIA_NamePropertyId)?;
+                println!("name: {:?}", name);
+                file_name = name.to_string();
+            }
+            file_name
+        };
+        println!("seleced_file_title: {:?}", seleced_file_title);
+
+        // 获取搜索框的 Text
+        let mut breadcrumb_parent_hwnd: Option<HWND> = None;
+        let _ = unsafe {
+            WindowsAndMessaging::EnumChildWindows(fw_hwnd, Some(Self::breadcrumb_proc), LPARAM(&mut breadcrumb_parent_hwnd as *const _ as isize))
+        };
+        if breadcrumb_parent_hwnd.is_none() {
+            return Ok(target_path);
+        }
+        let breadcrumb_parent_hwnd = breadcrumb_parent_hwnd.unwrap();
+        let breadcrumb_hwnd = unsafe {
+            WindowsAndMessaging::FindWindowExW(breadcrumb_parent_hwnd, None, w!("ToolbarWindow32"), None)
+        };
+        if breadcrumb_hwnd.is_err() {
+            return Ok(target_path);
+        }
+        let breadcrumb_hwnd = breadcrumb_hwnd.unwrap();
+        let mut breadcrumb_title = win::get_window_text(breadcrumb_hwnd);
+        println!("breadcrumb_title: {:?}", breadcrumb_title);
+        let re = regex::Regex::new(r"[A-Z]:\\.*").unwrap();
+        if let Some(cap) = re.find(&breadcrumb_title) {
+            breadcrumb_title = cap.as_str().to_string();
+        }
+
+        target_path = format!("{}\\{}", breadcrumb_title, seleced_file_title);
+        println!("target_path: {:?}", target_path);
+            
+        Ok(target_path)
+    }
+
+    unsafe extern "system" fn dialog_defview_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
+        let list_view = lparam.0 as *mut Option<HWND>;
+        let class_name = win::get_window_class_name(hwnd);
+        if class_name.contains("SHELLDLL_DefView") {
+            *list_view = Some(hwnd);
+            return BOOL(0);
+        }
+        BOOL(1)
+    }
+    unsafe extern "system" fn breadcrumb_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
+        let list_view = lparam.0 as *mut Option<HWND>;
+        let class_name = win::get_window_class_name(hwnd);
+        if class_name.contains("Breadcrumb Parent") {
+            *list_view = Some(hwnd);
+            return BOOL(0);
+        }
+        BOOL(1)
+    }
+
+    unsafe fn dispath2browser(dispatch: IDispatch) -> Option<IShellBrowser> {
+        
+        let mut service_provider: Option<IServiceProvider> = None;
+        dispatch
+            .query(
+                &IServiceProvider::IID,
+                &mut service_provider as *mut _ as *mut _,
+            )
+            .ok()
+            .unwrap();
+        if service_provider.is_none() {
+            return None;
+        }
+        let shell_browser = service_provider
+            .unwrap()
+            .QueryService::<IShellBrowser>(&IShellBrowser::IID)
+            .ok();
+        shell_browser
+    }
+
+    unsafe fn get_selected_file_path_from_shellview(shell_view: IShellView) -> String {
+        let mut target_path = String::new();
+        let shell_items = shell_view.GetItemObject::<IShellItemArray>(SVGIO_SELECTION);
+
+        if shell_items.is_err() {
+            return target_path;
+        }
+        println!("shell_items: {:?}", shell_items);
+        let shell_items = shell_items.unwrap();
+        let count = shell_items.GetCount().unwrap_or_default();
+        for i in 0..count {
+            let shell_item = shell_items.GetItemAt(i).unwrap();
+
+            // 如果不是文件对象则继续循环
+            if let Ok(attrs) = shell_item.GetAttributes(SFGAO_FILESYSTEM) {
+                log::info!("attrs: {:?}", attrs);
+                if attrs.0 == 0 {
+                    continue;
+                }
+            }
+
+            if let Ok(display_name) = shell_item.GetDisplayName(SIGDN_FILESYSPATH) {
+                target_path = display_name.to_string().unwrap();
+                break;
+            }
+            if let Ok(display_name) = shell_item.GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING)
+            {
+                target_path = display_name.to_string().unwrap();
+                break;
+            }
+        }
+        target_path
     }
 }
 

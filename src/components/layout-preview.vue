@@ -14,7 +14,7 @@ const props = defineProps<Props>()
 <template>
     <div class="preview">
         <Header class="preview-header" :file="props.file" />
-        <div class="preview-body" v-loading="props.loading">
+        <div class="preview-body" v-loading="props.loading" element-loading-background="rgba(210, 210, 210, 0.5)">
             <slot></slot>
         </div>
         <Footer class="preview-footer" :file="props.file" />
@@ -28,7 +28,7 @@ const props = defineProps<Props>()
     overflow: hidden;
     position: relative;
     &-header {
-        position: absolute;
+        position: sticky;
         left: 0;
         top: 0;
         width: 100%;
@@ -41,7 +41,7 @@ const props = defineProps<Props>()
         font-size: 12px;
     }
     &-body {
-        padding: 28px 0 20px;
+        height: calc(100% - 48px);
         display: flex;
         justify-content: center;
         align-items: center;

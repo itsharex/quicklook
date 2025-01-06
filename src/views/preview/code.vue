@@ -24,6 +24,10 @@ const getLanguage = (extension: string) => {
         ext = 'ts'
     } else if (['markdown'].includes(extension)) {
         ext = 'md'
+    } else if (['json5', 'json'].includes(extension)) {
+        ext = 'json'
+    } else if (extension === 'ps1') {
+        ext = 'powershell'
     }
     return ext
 }

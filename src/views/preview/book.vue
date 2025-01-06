@@ -66,10 +66,7 @@ const canvasRef = ref<HTMLCanvasElement>()
 const pager = ref<number>(1)
 let pdf: any = null
 onMounted(async () => {
-    console.log('BookSupport', PDFJS)
     PDFJS.GlobalWorkerOptions.workerSrc = '/pdf/pdf.worker.mjs'
-    // PDFJS.CMap.url = '/pdf/cmaps/' // 本地路径
-    // PDFJS.CMap.loaded = true // 如果你使用的是打包的 CMap 文件
     pager.value = 1
     fileInfo.value = route?.query as unknown as FileInfo
     const path = convertFileSrc(fileInfo.value.path)

@@ -104,3 +104,10 @@ pub fn get_default_program_name(path: &str) -> Result<String, String> {
         Ok(name)
     }
 }
+
+pub fn get_window_text(hwnd: HWND) -> String {
+    let len = unsafe { WindowsAndMessaging::GetWindowTextLengthW(hwnd) + 1 };
+    let mut buffer = vec![0u16; len as usize];
+    let len = unsafe { WindowsAndMessaging::GetWindowTextW(hwnd, &mut buffer) };
+    String::from_utf16_lossy(&buffer[0..len as usize])
+}

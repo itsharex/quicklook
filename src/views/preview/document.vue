@@ -51,8 +51,8 @@ onMounted(async () => {
     fileInfo.value = route?.query as unknown as FileInfo
     const val = fileInfo.value.path as string
     const docs: Docs = await invoke('document', { path: val, mode: fileInfo.value.extension })
-    type.value = docs.Excel ? DocType.Excel : DocType.Docx
-    console.log('docs', type.value)
+    type.value = docs.Excel ? DocType.Excel : docs.Docx ? DocType.Docx : DocType.Pptx
+
     switch (type.value) {
         case DocType.Excel:
             content.value = docs.Excel as Array<Sheet>
