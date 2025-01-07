@@ -24,5 +24,5 @@ pub fn get_webview_window(
 }
 
 pub fn get_scaled_size(size: f64, scale: f64) -> f64 {
-    size * scale
+    size / scale
 }

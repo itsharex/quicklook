@@ -58,11 +58,12 @@ pnpm tauri build
     - [x] ods
     - [x] csv
     - [x] docx
-  - 代码文件(utf8):
+  - 文本文件(utf8):
     - [x] html
     - [x] css
     - [x] js
     - [x] ts
+    - [x] tsx
     - [x] c
     - [x] cpp
     - [x] rs
@@ -81,7 +82,7 @@ pnpm tauri build
     - [ ] rar
     - [ ] 7z
 - 设置
-  - [ ] 支持格式的选择
+  - [x] 支持格式的显示
   - [ ] 版本显示以及更新
   - [ ] 自启动
 
