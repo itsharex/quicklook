@@ -1,24 +1,25 @@
 use std::sync::mpsc;
 use std::thread;
+use log::kv::ToValue;
 use tauri::{
     webview::PageLoadEvent, AppHandle, Error as TauriError,  Manager, WebviewUrl, WebviewWindowBuilder
 };
 use windows::{
-    core::{w, Error as WError, Interface, VARIANT},
+    core::{w, Error as WError, Interface, HSTRING, VARIANT},
     Win32::{
         Foundation::{BOOL, HWND, LPARAM, LRESULT, WPARAM},
         System::{
             Com::{
                 CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch, IServiceProvider, CLSCTX_INPROC_SERVER, CLSCTX_LOCAL_SERVER, COINIT_APARTMENTTHREADED
             }, 
-            SystemServices::SFGAO_FILESYSTEM, 
+            SystemServices::{SFGAO_BROWSABLE, SFGAO_FILESYSTEM, SFGAO_FOLDER, SFGAO_STORAGE}, 
             Variant::{self}
         },
         UI::{
             Accessibility::{CUIAutomation, IUIAutomation, IUIAutomationSelectionPattern, UIA_NamePropertyId,  UIA_SelectionPatternId}, 
             Input::KeyboardAndMouse, 
             Shell::{
-                IShellBrowser, IShellItemArray, IShellView, IShellWindows, ShellWindows, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SVGIO_SELECTION, SWC_DESKTOP, SWFO_NEEDDISPATCH
+                FOLDERID_Documents, FOLDERID_Downloads, FOLDERID_Libraries, FOLDERID_Music, FOLDERID_Pictures, FOLDERID_Videos, IShellBrowser, IShellItem, IShellItemArray, IShellView, IShellWindows, SHCreateItemFromParsingName, SHGetKnownFolderPath, ShellWindows, KF_FLAG_DEFAULT, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SIGDN_NORMALDISPLAY, SVGIO_SELECTION, SWC_DESKTOP, SWFO_NEEDDISPATCH
             }, 
             WindowsAndMessaging
         },
@@ -279,16 +280,65 @@ impl Selected {
         let breadcrumb_hwnd = breadcrumb_hwnd.unwrap();
         let mut breadcrumb_title = win::get_window_text(breadcrumb_hwnd);
         println!("breadcrumb_title: {:?}", breadcrumb_title);
-        let re = regex::Regex::new(r"[A-Z]:\\.*").unwrap();
-        if let Some(cap) = re.find(&breadcrumb_title) {
-            breadcrumb_title = cap.as_str().to_string();
+        let arr = breadcrumb_title.split(": ").map(|item|item.to_string()).collect::<Vec<String>>();
+        if arr.len() > 1 {
+            breadcrumb_title = arr[1].clone();
+        }
+
+        if !breadcrumb_title.contains(":\\") {
+            let path = Self::get_library_path(&breadcrumb_title);
+            println!("path: {:?}", path);
+            if path.is_err() {
+                return Ok(target_path);
+            }
+            breadcrumb_title = path.unwrap();
         }
 
         target_path = format!("{}\\{}", breadcrumb_title, seleced_file_title);
         println!("target_path: {:?}", target_path);
-            
+        
         Ok(target_path)
     }
+    fn get_library_path(name: &str) -> Result<String, WError> {
+        unsafe {
+            // 1. 获取库文件夹路径
+            let folder_id = match name {
+                "下载" => &FOLDERID_Downloads,
+                "音乐" => &FOLDERID_Music,
+                "图片" => &FOLDERID_Pictures,
+                "文档" => &FOLDERID_Documents,
+                "视频" => &FOLDERID_Videos,
+                "桌面" => &FOLDERID_Libraries,
+                _ => {
+                    // 如果是自定义库，尝试从Libraries文件夹读取
+                    let libraries_path = SHGetKnownFolderPath(
+                        &FOLDERID_Libraries,
+                        KF_FLAG_DEFAULT,
+                        None
+                    )?;
+                    
+                    let lib_file = format!("{}\\{}.library-ms", libraries_path.to_string()?, name);
+                    let shell_item: IShellItem = SHCreateItemFromParsingName(
+                        &HSTRING::from(lib_file),
+                        None
+                    )?;
+                    
+                    return Ok(shell_item.GetDisplayName(SIGDN_FILESYSPATH)?.to_string()?);
+                }
+            };
+            
+            println!("libraries_path: {:?}", folder_id);
+
+            
+            let path = SHGetKnownFolderPath(
+                folder_id,
+                KF_FLAG_DEFAULT,
+                None
+            )?;
+            Ok(path.to_string()?)
+        }
+        
+    }   
 
     unsafe extern "system" fn dialog_defview_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
         let list_view = lparam.0 as *mut Option<HWND>;
