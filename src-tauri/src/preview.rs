@@ -1,6 +1,5 @@
 use std::sync::mpsc;
 use std::thread;
-use log::kv::ToValue;
 use tauri::{
     webview::PageLoadEvent, AppHandle, Error as TauriError,  Manager, WebviewUrl, WebviewWindowBuilder
 };
@@ -12,14 +11,14 @@ use windows::{
             Com::{
                 CoCreateInstance, CoInitializeEx, CoUninitialize, IDispatch, IServiceProvider, CLSCTX_INPROC_SERVER, CLSCTX_LOCAL_SERVER, COINIT_APARTMENTTHREADED
             }, 
-            SystemServices::{SFGAO_BROWSABLE, SFGAO_FILESYSTEM, SFGAO_FOLDER, SFGAO_STORAGE}, 
+            SystemServices::SFGAO_FILESYSTEM, 
             Variant::{self}
         },
         UI::{
             Accessibility::{CUIAutomation, IUIAutomation, IUIAutomationSelectionPattern, UIA_NamePropertyId,  UIA_SelectionPatternId}, 
             Input::KeyboardAndMouse, 
             Shell::{
-                FOLDERID_Documents, FOLDERID_Downloads, FOLDERID_Libraries, FOLDERID_Music, FOLDERID_Pictures, FOLDERID_Videos, IShellBrowser, IShellItem, IShellItemArray, IShellView, IShellWindows, SHCreateItemFromParsingName, SHGetKnownFolderPath, ShellWindows, KF_FLAG_DEFAULT, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SIGDN_NORMALDISPLAY, SVGIO_SELECTION, SWC_DESKTOP, SWFO_NEEDDISPATCH
+                FOLDERID_Desktop, FOLDERID_Documents, FOLDERID_Downloads, FOLDERID_Libraries, FOLDERID_Music, FOLDERID_Pictures, FOLDERID_Videos, IShellBrowser, IShellItem, IShellItemArray, IShellView, IShellWindows, SHCreateItemFromParsingName, SHGetKnownFolderPath, ShellWindows, KF_FLAG_DEFAULT, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH, SVGIO_SELECTION, SWC_DESKTOP, SWFO_NEEDDISPATCH
             }, 
             WindowsAndMessaging
         },
@@ -70,8 +69,6 @@ impl Selected {
         } else {
             Err(WError::from_win32())
         }
-       
-
     }
     fn get_focused_type() -> Option<FwWindowType> {
         let mut type_str: Option<FwWindowType> = None;
@@ -183,14 +180,6 @@ impl Selected {
 
                 let shell_browser = shell_browser.unwrap();
 
-                let phwnd = shell_browser.GetWindow().unwrap();
-                let top = WindowsAndMessaging::GetAncestor(phwnd, WindowsAndMessaging::GA_ROOT);
-
-                if hwnd_gfw.0 != top.0 {
-                    log::info!("top hwnd 不相等");
-                    return Ok(target_path);
-                }
-
                 let shell_view = shell_browser.QueryActiveShellView()?;
 
                 target_path = Self::get_selected_file_path_from_shellview(shell_view);
@@ -279,7 +268,7 @@ impl Selected {
         }
         let breadcrumb_hwnd = breadcrumb_hwnd.unwrap();
         let mut breadcrumb_title = win::get_window_text(breadcrumb_hwnd);
-        println!("breadcrumb_title: {:?}", breadcrumb_title);
+        log::info!("弹窗目录: {:?}", breadcrumb_title);
         let arr = breadcrumb_title.split(": ").map(|item|item.to_string()).collect::<Vec<String>>();
         if arr.len() > 1 {
             breadcrumb_title = arr[1].clone();
@@ -287,7 +276,7 @@ impl Selected {
 
         if !breadcrumb_title.contains(":\\") {
             let path = Self::get_library_path(&breadcrumb_title);
-            println!("path: {:?}", path);
+            log::error!("path: {:?}", path);
             if path.is_err() {
                 return Ok(target_path);
             }
@@ -303,12 +292,12 @@ impl Selected {
         unsafe {
             // 1. 获取库文件夹路径
             let folder_id = match name {
-                "下载" => &FOLDERID_Downloads,
-                "音乐" => &FOLDERID_Music,
-                "图片" => &FOLDERID_Pictures,
-                "文档" => &FOLDERID_Documents,
-                "视频" => &FOLDERID_Videos,
-                "桌面" => &FOLDERID_Libraries,
+                "下载" | "Downloads" => &FOLDERID_Downloads,
+                "音乐" | "Music" => &FOLDERID_Music,
+                "图片" | "Pictures" => &FOLDERID_Pictures,
+                "文档" | "Documents" => &FOLDERID_Documents,
+                "视频" | "Videos" => &FOLDERID_Videos,
+                "桌面" | "Desktop" => &FOLDERID_Desktop,
                 _ => {
                     // 如果是自定义库，尝试从Libraries文件夹读取
                     let libraries_path = SHGetKnownFolderPath(
