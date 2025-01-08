@@ -1,6 +1,24 @@
 # quicklook
 
-windows 平台的文件预览工具
+QuickLook 是一个 windows 平台的快速预览工具。
+
+## 主要功能
+
+- 在文件资源管理器（Explorer）预览
+- 在桌面（Desktop）预览
+- 在文件选择弹窗（FileOpenDialog）预览
+
+## 支持预览的格式
+
+- markdown：markdown、md
+- Docs：docx、xls、xlsx、xlsm、xlsb、xla、xlam、ods、csv
+- Code：cpp、js、mjs、cjs、ts、mts、tsx、rs、py、java、html、css、scss、sass、less、c、go、vue、svelte、astro、jsx、json、yml、yaml、toml、bat、ps1、ini、swift、kt、php、h、xml、sql
+- Image：jpg、jpeg、png、webp、svg、apng
+- Video：mp4、mkv、、、
+- Auido：mp3
+- Book：pdf
+- Font: ttf、otf、woff2、woff
+- Archive：zip
 
 ## 如何运行项目
 
