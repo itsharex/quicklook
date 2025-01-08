@@ -1,53 +1,61 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import LayoutPreview from '@/components/layout-preview.vue'
+
 import Player, { I18N } from 'xgplayer'
 import 'xgplayer/dist/index.min.css'
 import ZH from 'xgplayer/es/lang/zh-cn'
+import MusicPreset from 'xgplayer-music'
+
+import type { FileInfo } from '@/utils/typescript'
+import { convertFileSrc } from '@tauri-apps/api/core'
+
+const route = useRoute()
 
 // 启用中文
 I18N.use(ZH)
 
 defineOptions({
-    name: 'VideoSupport',
+    name: 'AudioSupport',
 })
 
-interface Props {
-    src?: string
-}
-const props = withDefaults(defineProps<Props>(), {
-    src: '',
-})
+const fileInfo = ref<FileInfo>()
 let player: Player | null = null
 
-watch(
-    () => props.src,
-    (val, old) => {
-        if (val !== old && val !== '') {
-            if (player !== null) {
-                player.destroy()
-                ;(document.querySelector('#videos') as HTMLElement).innerHTML = ''
-            }
-            player = new Player({
-                id: 'videos',
+fileInfo.value = route.query as unknown as FileInfo
 
-                url: props.src,
-                height: '100%',
-                width: '100%',
-            })
-        }
-    },
-    {
-        immediate: true,
-    },
-)
+onMounted(async () => {
+    fileInfo.value = route.query as unknown as FileInfo
+    const path = convertFileSrc(fileInfo.value.path)
+    console.log('path', path)
+    if (player !== null) {
+        player.destroy()
+        ;(document.querySelector('#audios') as HTMLElement).innerHTML = ''
+    }
+    player = new Player({
+        id: 'audios',
+        mediaType: 'audio',
+        url: path,
+        height: '100%',
+        width: '100%',
+        presets: ['default', MusicPreset],
+        controls: {
+            initShow: true,
+            mode: 'flex',
+        },
+    })
+})
 </script>
 
 <template>
-    <div class="video-support">
-        <div class="video-support-inner">
-            <div id="videos"></div>
+    <LayoutPreview :file="fileInfo">
+        <div class="video-support">
+            <div class="video-support-inner">
+                <div id="audios"></div>
+            </div>
         </div>
-    </div>
+    </LayoutPreview>
 </template>
 
 <style scoped lang="scss">

@@ -57,6 +57,18 @@
         "3gp",
         "3g2"
     ],
+    "preview.audio": [
+        "m4a",
+        "mp3",
+        "3gp",
+        "ogg"
+    ],
+    "preview.audio.checked": [
+        "m4a",
+        "mp3",
+        "3gp",
+        "ogg"
+    ],
     "preview.doc": [
         "docx",
         "xls",

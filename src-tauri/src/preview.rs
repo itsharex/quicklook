@@ -451,6 +451,7 @@ impl WebRoute {
             "Markdown" => WebRoute::new("/preview/md".to_string(), file_info.clone()),
             "Text" => WebRoute::new("/preview/text".to_string(), file_info.clone()),
             "Image" => WebRoute::new("/preview/image".to_string(), file_info.clone()),
+            "Audio" => WebRoute::new("/preview/audio".to_string(), file_info.clone()),
             "Video" => WebRoute::new("/preview/video".to_string(), file_info.clone()),
             "Font" => WebRoute::new("/preview/font".to_string(), file_info.clone()),
             "Code" => WebRoute::new("/preview/code".to_string(), file_info.clone()),
@@ -525,6 +526,33 @@ impl PreviewFile {
         
         next_hook_result
     }
+    fn calc_window_size(file_type: &str) -> (f64, f64) {
+        let monitor_info = monitor::get_monitor_info();
+
+        
+            
+        let scale = monitor_info.scale;
+        let mut width = 1000.0;
+        let mut height = 600.0;
+
+        if monitor_info.width > 0.0 {
+            if file_type == "Audio" {
+                width = 600.0;
+                height = 240.0;
+            } else {
+                width = monitor_info.width * 0.8;
+                height = monitor_info.height * 0.8;
+            }
+        }
+
+        if monitor_info.scale > 1.0 {
+            width = helper::get_scaled_size(width, scale);
+            height = helper::get_scaled_size(height, scale);
+        }
+       
+        log::info!("Client Rect: width is {}, height is {}, scale is {}", width, height, scale);
+        (width, height)
+    }
 
     pub fn preview_file(app: AppHandle) -> Result<(), TauriError> {
         let file_path = Selected::new();
@@ -537,18 +565,9 @@ impl PreviewFile {
             }
 
             let file_info = file_info.unwrap();
+            let file_type = file_info.get_file_type();
 
-            let monitor_info = monitor::get_monitor_info();
-            let scale = monitor_info.scale;
-            let mut width = 1000.0;
-            let mut height = 600.0;
-            if monitor_info.width > 0.0 {
-                let tmp_width = monitor_info.width * 0.8;
-                let tmo_height = monitor_info.height * 0.8;
-                width = helper::get_scaled_size(tmp_width, scale);
-                height = helper::get_scaled_size(tmo_height, scale);
-            }
-            log::info!("Client Rect: width - {}, height - : {}, scale - {}", width, height, scale);
+            let (width, height) = Self::calc_window_size(&file_type);
 
             match app.get_webview_window("preview") {
                 Some(window) => {
