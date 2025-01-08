@@ -69,8 +69,6 @@ impl Selected {
         } else {
             Err(WError::from_win32())
         }
-       
-
     }
     fn get_focused_type() -> Option<FwWindowType> {
         let mut type_str: Option<FwWindowType> = None;
@@ -181,14 +179,6 @@ impl Selected {
                 }
 
                 let shell_browser = shell_browser.unwrap();
-
-                let phwnd = shell_browser.GetWindow().unwrap();
-                let top = WindowsAndMessaging::GetAncestor(phwnd, WindowsAndMessaging::GA_ROOT);
-
-                if !hwnd_gfw.eq(&top) {
-                    log::info!("fwhwnd: {:?}, top: {:?} 不相等", hwnd_gfw, top);
-                    return Ok(target_path);
-                }
 
                 let shell_view = shell_browser.QueryActiveShellView()?;
 
