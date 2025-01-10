@@ -70,7 +70,7 @@ impl Selected {
             Err(WError::from_win32())
         }
     }
-    fn get_focused_type() -> Option<FwWindowType> {
+    pub fn get_focused_type() -> Option<FwWindowType> {
         let mut type_str: Option<FwWindowType> = None;
         let hwnd_gfw = unsafe { WindowsAndMessaging::GetForegroundWindow() };
         let class_name = win::get_window_class_name(hwnd_gfw);
@@ -517,6 +517,30 @@ impl PreviewFile {
             let vk_code = kb_struct.vkCode;
 
             if vk_code == KeyboardAndMouse::VK_SPACE.0 as u32 {
+                let type_str = Selected::get_focused_type();
+                if type_str.is_none() {
+                    return next_hook_result;
+                }
+                let edit = unsafe {
+                    let mut flag = false;
+                    let foreground = WindowsAndMessaging::GetForegroundWindow();
+                    let edit = WindowsAndMessaging::FindWindowExW(
+                        foreground,
+                        None,
+                        w!("Edit"),
+                        None
+                    );
+                    if edit.is_err() {
+                        flag = false;
+                    }   else {
+                        flag = !edit.unwrap().is_invalid()
+                    }
+                    flag
+                };
+            
+                if edit {
+                    return next_hook_result;
+                }
                 // 获取 PreviewFile 实例并处理按键事件
                 if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
                     app.handle_key_down(vk_code);

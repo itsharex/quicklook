@@ -27,6 +27,12 @@ QuickLook 是一个 windows 平台的快速预览工具。
 - Rust [官方网站](https://www.rust-lang.org/tools/install)
 - Tauri [官方网站](https://tauri.app/start/prerequisites/)
 - NodeJS [官方网站](https://nodejs.org/)
+- ffmpeg 使用 vcpkg 安装
+
+### 安装 Ffmpeg
+
+- vcpkg [官方网站](https://github.com/microsoft/vcpkg)
+- llvm 使用 choco、scoop 任何方法安装
 
 ### 拉取项目代码
 

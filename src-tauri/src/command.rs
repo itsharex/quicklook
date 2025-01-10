@@ -43,6 +43,11 @@ pub fn get_default_program_name(path: &str)-> Result<String,String> {
     win::get_default_program_name(path)
 }
 
+#[command]
+pub fn decode_video(app: &AppHandle, path: &str, label: String) -> Result<(), ffmpeg_next::Error> {
+    helper::ffmp::decode_video_stream(app, path, label)
+}
+
 // use windows::{
 //     core::s,
 //     Win32::{
