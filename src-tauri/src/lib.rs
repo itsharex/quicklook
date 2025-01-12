@@ -3,13 +3,16 @@ use tauri_plugin_autostart::MacosLauncher;
 #[cfg(not(debug_assertions))]
 use tauri_plugin_autostart::ManagerExt;
 
+mod helper;
 mod preview;
 mod tray;
-mod helper;
 
 #[path = "./command.rs"]
 mod command;
-use command::{archive, document, show_open_with_dialog, get_monitor_info, get_default_program_name};
+use command::{
+    archive, decode_video, document, get_default_program_name, get_monitor_info,
+    show_open_with_dialog,
+};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -37,25 +40,24 @@ pub fn run() {
 
             let config = helper::config::read_config(handle)?;
             app.manage(config);
-            
+
             let handle_clone = handle.clone();
             let _ = app.listen("config_update", move |event| {
                 let handle = handle_clone.clone();
-                
+
                 println!("update event: {:?}", event);
                 if let Ok(conf) = helper::config::read_config(&handle_clone) {
                     handle.manage(conf);
                 }
-               
             });
-            
+
             // 自动启动
             #[cfg(not(debug_assertions))]
             {
                 let autostart_manager = app.autolaunch();
                 let _ = autostart_manager.enable();
             }
-            
+
             // 创建托盘
             tray::create_tray(app)?;
             // 初始化预览文件
@@ -69,7 +71,8 @@ pub fn run() {
             archive,
             document,
             get_monitor_info,
-            get_default_program_name
+            get_default_program_name,
+            decode_video
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

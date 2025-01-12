@@ -1,9 +1,9 @@
 use tauri::{command, AppHandle, Manager};
 use windows::Win32::Foundation::HWND;
 
-#[path ="helper/mod.rs"]
+#[path = "helper/mod.rs"]
 mod helper;
-use helper::{archives, docs, monitor, win};
+use helper::{archives, docs, ffmp, monitor, win};
 
 #[command]
 pub fn show_open_with_dialog(app: AppHandle, path: &str) {
@@ -27,25 +27,25 @@ pub fn document(path: &str, mode: &str) -> Result<docs::Docs, String> {
         "csv" => docs::Docs::csv(path).map_err(|e| e.to_string()),
         "xlsx" | "xls" | "xlsm" | "xlsb" | "xla" | "xlam" | "ods" => {
             docs::Docs::excel(path).map_err(|e| e.to_string())
-        },
+        }
         "docx" => docs::Docs::docx(path).map_err(|e| e.to_string()),
         _ => Err("Not Support".to_string()),
     }
 }
 
 #[command]
-pub fn get_monitor_info()-> monitor::MonitorInfo {
+pub fn get_monitor_info() -> monitor::MonitorInfo {
     monitor::get_monitor_info()
 }
 
 #[command]
-pub fn get_default_program_name(path: &str)-> Result<String,String> {
+pub fn get_default_program_name(path: &str) -> Result<String, String> {
     win::get_default_program_name(path)
 }
 
 #[command]
-pub fn decode_video(app: &AppHandle, path: &str, label: String) -> Result<(), ffmpeg_next::Error> {
-    helper::ffmp::decode_video_stream(app, path, label)
+pub fn decode_video(app: AppHandle, path: &str, label: String) -> Result<(), String> {
+    ffmp::decode_video_stream(&app, path, label)
 }
 
 // use windows::{
