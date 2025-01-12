@@ -183,6 +183,7 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("sass", "Code");
     map.insert("less", "Code");
     map.insert("c", "Code");
+    map.insert("cs", "Code");
     map.insert("go", "Code");
     map.insert("vue", "Code");
     map.insert("svelte", "Code");
