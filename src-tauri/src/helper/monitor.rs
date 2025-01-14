@@ -18,6 +18,7 @@ impl Default for MonitorInfo {
     }
 }
 
+#[allow(dead_code)]
 pub fn get_monitor_info() -> MonitorInfo {
     let hwnd = HWND(null_mut());
     let hdc = unsafe { GetDC(hwnd) };

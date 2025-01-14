@@ -24,6 +24,7 @@ pub struct Config {
     pub book_checked: Vec<String>,
 }
 
+#[allow(unused)]
 pub fn read_config(app: &AppHandle) -> Result<Config, String> {
     let config_path = app.path().resolve("config.json", BaseDirectory::Resource).unwrap();
 

@@ -3,12 +3,13 @@ use calamine::Reader;
 use docx_rs::*;
 use serde::Serialize;
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize)]
 pub enum Docs {
     Excel(Vec<DSheet>),
     Docx(String),
 }
-
+#[allow(unused)]
 impl Docs {
     pub fn excel(file_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let target = excel(file_path)?;
@@ -74,6 +75,7 @@ fn csv(file_path: &str) -> Result<Vec<DSheet>, Box<dyn std::error::Error>> {
     }];
     Ok(target)
 }
+#[allow(unused)]
 fn docx(file_path: &str) -> Result<String, Box<dyn std::error::Error>> {
     let mut file = File::open(&file_path)?;
     let mut buf = Vec::new();
@@ -98,11 +100,13 @@ fn docx(file_path: &str) -> Result<String, Box<dyn std::error::Error>> {
     Ok(content)
 }
 
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize)]
 struct Docx2Html {
     document: String,
     styles: String,
 }
-
+#[allow(unused)]
 impl Docx2Html {
     fn new() -> Self {
         Docx2Html {

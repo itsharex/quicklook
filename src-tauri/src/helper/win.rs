@@ -62,7 +62,7 @@ pub fn show_open_with_dialog(file_path: &str, hwnd: HWND) -> windows::core::Resu
 
     Ok(())
 }
-
+#[allow(unused)]
 pub fn get_default_program_name(path: &str) -> Result<String, String> {
     let path = Path::new(path);
     let ext = path.extension()
@@ -104,7 +104,7 @@ pub fn get_default_program_name(path: &str) -> Result<String, String> {
         Ok(name)
     }
 }
-
+#[allow(unused)]
 pub fn get_window_text(hwnd: HWND) -> String {
     let len = unsafe { WindowsAndMessaging::GetWindowTextLengthW(hwnd) + 1 };
     let mut buffer = vec![0u16; len as usize];

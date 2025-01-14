@@ -1,5 +1,6 @@
 use tauri::{command, AppHandle, Manager};
 use windows::Win32::Foundation::HWND;
+use log::info;
 
 #[path = "helper/mod.rs"]
 mod helper;
@@ -43,9 +44,11 @@ pub fn get_default_program_name(path: &str) -> Result<String, String> {
     win::get_default_program_name(path)
 }
 
+#[allow(unused)]
 #[command]
-pub fn decode_video(app: AppHandle, path: &str, label: String) -> Result<(), String> {
-    ffmp::decode_video_stream(&app, path, label)
+pub fn decode_video(app: AppHandle, path: String, label: String) -> Result<(), String> {
+    info!("Decoding video: {}", path);
+    ffmp::decode_video_stream(app, &path, label)
 }
 
 // use windows::{
