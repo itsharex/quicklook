@@ -138,7 +138,6 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("mp4", "Video");
     map.insert("webm", "Video");
     map.insert("mkv", "Video");
-    map.insert("flv", "Video");
     map.insert("avi", "Video");
     map.insert("mov", "Video");
     map.insert("wmv", "Video");
@@ -150,39 +149,9 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
 
     // 音频文件
     map.insert("mp3", "Audio");
-    map.insert("wav", "Audio");
-    map.insert("flac", "Audio");
+    map.insert("3gp", "Audio");
     map.insert("ogg", "Audio");
     map.insert("m4a", "Audio");
-    map.insert("wma", "Audio");
-    map.insert("aac", "Audio");
-    map.insert("amr", "Audio");
-    map.insert("aiff", "Audio");
-    map.insert("au", "Audio");
-    map.insert("awb", "Audio");
-    map.insert("dct", "Audio");
-    map.insert("dss", "Audio");
-    map.insert("dvf", "Audio");
-    map.insert("gsm", "Audio");
-    map.insert("iklax", "Audio");
-    map.insert("ivs", "Audio");
-    map.insert("m4p", "Audio");
-    map.insert("mmf", "Audio");
-    map.insert("mpc", "Audio");
-    map.insert("msv", "Audio");
-    map.insert("nmf", "Audio");
-    map.insert("nsf", "Audio");
-    map.insert("ra", "Audio");
-    map.insert("rm", "Audio");
-    map.insert("sln", "Audio");
-    map.insert("tta", "Audio");
-    map.insert("vox", "Audio");
-    map.insert("wv", "Audio");
-    map.insert("8svx", "Audio");
-    map.insert("cda", "Audio");
-    map.insert("mid", "Audio");
-    map.insert("midi", "Audio");
-    map.insert("mka", "Audio");
 
     // 压缩文件
     map.insert("zip", "Archive");
@@ -214,6 +183,7 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("sass", "Code");
     map.insert("less", "Code");
     map.insert("c", "Code");
+    map.insert("cs", "Code");
     map.insert("go", "Code");
     map.insert("vue", "Code");
     map.insert("svelte", "Code");

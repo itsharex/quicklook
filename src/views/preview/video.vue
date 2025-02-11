@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+
 import Player, { I18N } from 'xgplayer'
 import 'xgplayer/dist/index.min.css'
 import ZH from 'xgplayer/es/lang/zh-cn'
-import { useRoute } from 'vue-router'
+
 import type { FileInfo } from '@/utils/typescript'
 import LayoutPreview from '@/components/layout-preview.vue'
 import { convertFileSrc } from '@tauri-apps/api/core'
@@ -29,6 +31,7 @@ onMounted(async () => {
     }
     player = new Player({
         id: 'videos',
+        isLive: false,
         url: path,
         height: '100%',
         width: '100%',
