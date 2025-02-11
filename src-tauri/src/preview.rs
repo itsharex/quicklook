@@ -124,6 +124,10 @@ impl Selected {
                         continue;
                     }
 
+                    if win::is_cursor_activated(HWND::default()) {
+                        continue;
+                    };
+
                     let shell_view = shell_browser.QueryActiveShellView().unwrap();
                     target_path = Self::get_selected_file_path_from_shellview(shell_view);
                 }
@@ -171,6 +175,11 @@ impl Selected {
                         &mut phwnd,
                         SWFO_NEEDDISPATCH,
                     )?;
+
+                if win::is_cursor_activated(HWND(phwnd as *mut _)) {
+                    log::info!("存在激活的鼠标");
+                    return Ok(target_path);
+                };
 
                 let shell_browser = Self::dispath2browser(dispatch);
                 if shell_browser.is_none() {
@@ -521,26 +530,7 @@ impl PreviewFile {
                 if type_str.is_none() {
                     return next_hook_result;
                 }
-                let edit = unsafe {
-                    let mut flag = false;
-                    let foreground = WindowsAndMessaging::GetForegroundWindow();
-                    let edit = WindowsAndMessaging::FindWindowExW(
-                        foreground,
-                        None,
-                        w!("Edit"),
-                        None
-                    );
-                    if edit.is_err() {
-                        flag = false;
-                    }   else {
-                        flag = !edit.unwrap().is_invalid()
-                    }
-                    flag
-                };
-            
-                if edit {
-                    return next_hook_result;
-                }
+                
                 // 获取 PreviewFile 实例并处理按键事件
                 if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
                     app.handle_key_down(vk_code);
@@ -552,8 +542,6 @@ impl PreviewFile {
     }
     fn calc_window_size(file_type: &str) -> (f64, f64) {
         let monitor_info = monitor::get_monitor_info();
-
-        
             
         let scale = monitor_info.scale;
         let mut width = 1000.0;
