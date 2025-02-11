@@ -2,6 +2,7 @@ use tauri::{Listener, Manager};
 use tauri_plugin_autostart::MacosLauncher;
 #[cfg(not(debug_assertions))]
 use tauri_plugin_autostart::ManagerExt;
+use log::info;
 
 mod helper;
 mod preview;
@@ -10,7 +11,7 @@ mod tray;
 #[path = "./command.rs"]
 mod command;
 use command::{
-    archive, decode_video, document, get_default_program_name, get_monitor_info,
+    archive, document, get_default_program_name, get_monitor_info,
     show_open_with_dialog,
 };
 
@@ -31,7 +32,7 @@ pub fn run() {
             let handle = app.handle();
             handle.plugin(
                 tauri_plugin_log::Builder::default()
-                    .level(log::LevelFilter::Info)
+                    .level(log::LevelFilter::Debug)  // 改为 Debug 级别
                     .max_file_size(50000)
                     .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
                     .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
@@ -71,16 +72,23 @@ pub fn run() {
             archive,
             document,
             get_monitor_info,
-            get_default_program_name,
-            decode_video
+            get_default_program_name
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
-        .run(|_handle, event| {
-            if let tauri::RunEvent::ExitRequested { api, code, .. } = event {
-                if code.is_none() {
-                    api.prevent_exit();
+        .run(|_app_handle, event| {
+            match event {
+                tauri::RunEvent::ExitRequested { api, code, .. } => {
+                    if code.is_none() {
+                        api.prevent_exit();
+                    } else {
+                        info!("exit code: {:?}", code);
+                    }
                 }
+                _ => {
+                    println!("event: {:?}", event);
+                }
+
             }
         });
 }

@@ -1,10 +1,11 @@
 use tauri::{command, AppHandle, Manager};
 use windows::Win32::Foundation::HWND;
-use log::info;
+// use log::info;
 
 #[path = "helper/mod.rs"]
 mod helper;
-use helper::{archives, docs, ffmp, monitor, win};
+use helper::{archives, docs, monitor, win};
+// use helper::{archives, docs, ffmp, monitor, win};
 
 #[command]
 pub fn show_open_with_dialog(app: AppHandle, path: &str) {
@@ -44,12 +45,12 @@ pub fn get_default_program_name(path: &str) -> Result<String, String> {
     win::get_default_program_name(path)
 }
 
-#[allow(unused)]
-#[command]
-pub fn decode_video(app: AppHandle, path: String, label: String) -> Result<(), String> {
-    info!("Decoding video: {}", path);
-    ffmp::decode_video_stream(app, &path, label)
-}
+// #[allow(unused)]
+// #[command]
+// pub fn decode_video(app: AppHandle, path: String, label: String) -> Result<(), String> {
+//     info!("Decoding video: {}", path);
+//     ffmp::decode_video_stream(app, &path, label)
+// }
 
 // use windows::{
 //     core::s,
