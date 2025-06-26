@@ -2,7 +2,6 @@ use tauri::{Listener, Manager};
 use tauri_plugin_autostart::MacosLauncher;
 #[cfg(not(debug_assertions))]
 use tauri_plugin_autostart::ManagerExt;
-use log::info;
 
 mod helper;
 mod preview;
@@ -11,13 +10,15 @@ mod tray;
 #[path = "./command.rs"]
 mod command;
 use command::{
-    archive, document, get_default_program_name, get_monitor_info,
-    show_open_with_dialog,
+    archive, document, get_default_program_name, get_monitor_info, show_open_with_dialog,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default();
+
+    // 注册插件
+    builder = builder
         .plugin(tauri_plugin_sql::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
         .plugin(tauri_plugin_shell::init())
@@ -27,12 +28,15 @@ pub fn run() {
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             Some(vec![]),
-        ))
+        ));
+
+    // 初始化
+    let app = builder
         .setup(|app| {
             let handle = app.handle();
             handle.plugin(
                 tauri_plugin_log::Builder::default()
-                    .level(log::LevelFilter::Debug)  // 改为 Debug 级别
+                    .level(log::LevelFilter::Debug) // 改为 Debug 级别
                     .max_file_size(50000)
                     .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
                     .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
@@ -75,20 +79,15 @@ pub fn run() {
             get_default_program_name
         ])
         .build(tauri::generate_context!())
-        .expect("error while running tauri application")
-        .run(|_app_handle, event| {
-            match event {
-                tauri::RunEvent::ExitRequested { api, code, .. } => {
-                    if code.is_none() {
-                        api.prevent_exit();
-                    } else {
-                        info!("exit code: {:?}", code);
-                    }
-                }
-                _ => {
-                    println!("event: {:?}", event);
-                }
+        .expect("error while running tauri application");
 
+    // 阻止因窗口全部关闭而退出应用
+    app.run(|_app_handle, event| match event {
+        tauri::RunEvent::ExitRequested { api, code, .. } => {
+            if code.is_none() {
+                api.prevent_exit();
             }
-        });
+        }
+        _ => {}
+    });
 }

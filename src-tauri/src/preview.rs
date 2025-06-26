@@ -1,4 +1,4 @@
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc, LazyLock, Mutex};
 use std::thread;
 use tauri::{
     webview::PageLoadEvent, AppHandle, Error as TauriError, Manager, WebviewUrl,
@@ -42,11 +42,13 @@ use helper::{monitor, win};
 mod utils;
 use utils::{get_file_info, File as UFile};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PreviewFile {
     hook_handle: Option<WindowsAndMessaging::HHOOK>, // 钩子的句柄
     app_handle: Option<AppHandle>,
 }
+unsafe impl Send for PreviewFile {}
+unsafe impl Sync for PreviewFile {}
 
 #[derive(Debug)]
 pub enum FwWindowType {
@@ -273,7 +275,6 @@ impl Selected {
                 let item = selected.GetElement(0)?;
                 // 获取文件名
                 let name = item.GetCurrentPropertyValue(UIA_NamePropertyId)?;
-                println!("name: {:?}", name);
                 file_name = name.to_string();
             }
             file_name
@@ -554,7 +555,7 @@ impl PreviewFile {
                 }
 
                 // 获取 PreviewFile 实例并处理按键事件
-                if let Some(app) = unsafe { APP_INSTANCE.as_ref() } {
+                if let Some(app) = get_global_instance() {
                     app.handle_key_down(vk_code);
                 }
             }
@@ -599,6 +600,10 @@ impl PreviewFile {
             let file_path = file_path.unwrap();
             let file_info = get_file_info(&file_path);
 
+            let preview_state = app.state::<PreviewState>();
+            let mut preview_state = preview_state.lock().unwrap();
+            preview_state.input_path = file_path.clone();
+
             if file_info.is_none() {
                 return Ok(());
             }
@@ -626,7 +631,9 @@ impl PreviewFile {
                         "preview",
                         WebviewUrl::App("/preview".into()),
                     )
+                    .title("Preview")
                     .center()
+                    .devtools(cfg!(debug_assertions))
                     .decorations(false)
                     .skip_taskbar(false)
                     .auto_resize()
@@ -654,7 +661,7 @@ impl PreviewFile {
                     .focused(true)
                     .visible_on_all_workspaces(true)
                     .build();
-
+                    log::info!("result: {:?}", result);
                     if let Ok(preview) = result {
                         let _ = preview.show();
                     }
@@ -675,7 +682,23 @@ impl PreviewFile {
     }
 }
 
-static mut APP_INSTANCE: Option<PreviewFile> = None;
+static PREVIEW_INSTANCE: LazyLock<Mutex<Option<Arc<PreviewFile>>>> =
+    LazyLock::new(|| Mutex::new(None));
+// 函数用于设置全局 PreviewFile 实例
+pub fn set_global_instance(instance: PreviewFile) {
+    if let Ok(mut handle) = PREVIEW_INSTANCE.lock() {
+        *handle = Some(Arc::new(instance));
+    }
+}
+// 函数用于获取全局 PreviewFile 实例
+fn get_global_instance() -> Option<Arc<PreviewFile>> {
+    if let Ok(guard) = PREVIEW_INSTANCE.lock() {
+        guard.clone()
+    } else {
+        None
+    }
+}
+
 impl Drop for PreviewFile {
     fn drop(&mut self) {
         println!("Dropping PreviewFile instance");
@@ -689,14 +712,25 @@ impl Default for PreviewFile {
     }
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct PreviewStateInner {
+    input_path: String,
+}
+
+unsafe impl Send for PreviewStateInner {}
+unsafe impl Sync for PreviewStateInner {}
+
+pub type PreviewState = Mutex<PreviewStateInner>;
+
 //noinspection ALL
 // 公开一个全局函数来初始化 PreviewFile
 pub fn init_preview_file(handle: AppHandle) {
     let mut preview_file = PreviewFile::default();
     preview_file.set_keyboard_hook();
-    preview_file.app_handle = Some(handle);
+    preview_file.app_handle = Some(handle.clone());
+
     // 将实例存储在全局变量中
-    unsafe {
-        APP_INSTANCE = Some(preview_file);
-    }
+    set_global_instance(preview_file);
+
+    handle.manage::<PreviewState>(Mutex::new(PreviewStateInner::default()));
 }
