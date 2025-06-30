@@ -50,7 +50,7 @@ impl Extract {
 
     // pub fn new(path: &str) -> Result<Vec<Extract>, Box<dyn std::error::Error>> {
     //     let mut entries: Vec<Extract> = vec![];
-        
+
     //     unsafe {
     //         // 创建新的归档对象
     //         let archive = match libarchive::archive_read_new() {
@@ -78,7 +78,7 @@ impl Extract {
     //                 return Err("Invalid path".into());
     //             }
     //         };
-            
+
     //         if libarchive::archive_read_open_filename(archive, c_path.as_ptr(), 10240) != libarchive::ARCHIVE_OK as i32 {
     //             libarchive::archive_read_close(archive);
     //             libarchive::archive_read_free(archive);
