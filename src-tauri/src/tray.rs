@@ -118,10 +118,12 @@ pub fn create_tray(app: &mut App) -> tauri::Result<()> {
                         let _ = autostart_manager.disable();
                         let _ = auto_start.set_text("启用开机自启").unwrap();
                         store.set("autostart", serde_json::Value::Bool(false));
+                        log::info!("自启动设置为禁用");
                     } else {
                         let _ = autostart_manager.enable();
                         let _ = auto_start.set_text("关闭开机自启").unwrap();
                         store.set("autostart", serde_json::Value::Bool(true));
+                        log::info!("自启动设置为开启");
                     }
                 }
             }

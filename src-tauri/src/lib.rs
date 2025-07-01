@@ -1,6 +1,6 @@
 use tauri::{Listener, Manager};
 use tauri_plugin_autostart::MacosLauncher;
-// #[cfg(not(debug_assertions))]
+#[cfg(not(debug_assertions))]
 use tauri_plugin_autostart::ManagerExt;
 
 mod helper;
@@ -59,29 +59,28 @@ pub fn run() {
             });
 
             // 自动启动
-            // #[cfg(not(debug_assertions))]
-            // {
+            #[cfg(not(debug_assertions))]
+            {
+                let config_autostart = store
+                    .get("autostart")
+                    .unwrap_or(serde_json::Value::Bool(true));
+                let autostart_manager = app.autolaunch();
+                let is_enabled = config_autostart.as_bool();
+                log::info!("自启动状态: {:?}", is_enabled);
 
-            let config_autostart = store
-                .get("autostart")
-                .unwrap_or(serde_json::Value::Bool(true));
-            let autostart_manager = app.autolaunch();
-            let is_enabled = config_autostart.as_bool();
-            log::info!("Auto start enabled: {:?}", is_enabled);
-
-            if let Some(enabled) = is_enabled {
-                if enabled {
-                    let _ = autostart_manager.enable();
-                    log::info!("Auto start enabled");
+                if let Some(enabled) = is_enabled {
+                    if enabled {
+                        let _ = autostart_manager.enable();
+                        log::info!("自启动设置为开启");
+                    } else {
+                        let _ = autostart_manager.disable();
+                        log::info!("自启动设置为禁用");
+                    }
                 } else {
-                    let _ = autostart_manager.disable();
-                    log::info!("Auto start disabled");
+                    let _ = autostart_manager.enable();
+                    log::warn!("无法检查自启动状态时，默认启用自启动");
                 }
-            } else {
-                let _ = autostart_manager.enable();
-                log::warn!("Failed to check auto start status");
             }
-            // }
 
             // 初始化预览文件
             let app_handle = app.handle().clone();
