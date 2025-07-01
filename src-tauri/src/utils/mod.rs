@@ -182,6 +182,7 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("scss", "Code");
     map.insert("sass", "Code");
     map.insert("less", "Code");
+    map.insert("styl", "Code");
     map.insert("c", "Code");
     map.insert("cs", "Code");
     map.insert("go", "Code");
@@ -202,6 +203,14 @@ fn file_type_mapping() -> HashMap<&'static str, &'static str> {
     map.insert("h", "Code");
     map.insert("xml", "Code");
     map.insert("sql", "Code");
+    map.insert("pug", "Code");
+    map.insert("lua", "Code");
+    map.insert("r", "Code");
+    map.insert("d", "Code");
+    map.insert("vb", "Code");
+    map.insert("pas", "Code");
+    map.insert("scala", "Code");
+    map.insert("m", "Code");
 
     // 书籍文件
     map.insert("pdf", "Book");
