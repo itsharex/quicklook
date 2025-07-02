@@ -11,6 +11,6 @@
     "dialog:default",
     "shell:default",
     "log:default",
-    "sql:default"
+    "store:default"
   ]
 }

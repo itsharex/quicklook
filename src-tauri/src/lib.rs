@@ -12,14 +12,15 @@ mod command;
 use command::{
     archive, document, get_default_program_name, get_monitor_info, show_open_with_dialog,
 };
+use tauri_plugin_store::StoreExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let mut builder = tauri::Builder::default();
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_store::Builder::new().build());
 
     // 注册插件
     builder = builder
-        .plugin(tauri_plugin_sql::Builder::new().build())
+        .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
@@ -28,20 +29,21 @@ pub fn run() {
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             Some(vec![]),
-        ));
+        ))
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                .level(log::LevelFilter::Info) // 默认日志级别为 Info
+                .max_file_size(10000)
+                .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
+                .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
+                .build(),
+        );
 
     // 初始化
     let app = builder
         .setup(|app| {
             let handle = app.handle();
-            handle.plugin(
-                tauri_plugin_log::Builder::default()
-                    .level(log::LevelFilter::Debug) // 改为 Debug 级别
-                    .max_file_size(50000)
-                    .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
-                    .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
-                    .build(),
-            )?;
+            let store = app.store("config.data")?;
 
             let config = helper::config::read_config(handle)?;
             app.manage(config);
@@ -59,15 +61,33 @@ pub fn run() {
             // 自动启动
             #[cfg(not(debug_assertions))]
             {
+                let config_autostart = store
+                    .get("autostart")
+                    .unwrap_or(serde_json::Value::Bool(true));
                 let autostart_manager = app.autolaunch();
-                let _ = autostart_manager.enable();
+                let is_enabled = config_autostart.as_bool();
+                log::info!("自启动状态: {:?}", is_enabled);
+
+                if let Some(enabled) = is_enabled {
+                    if enabled {
+                        let _ = autostart_manager.enable();
+                        log::info!("自启动设置为开启");
+                    } else {
+                        let _ = autostart_manager.disable();
+                        log::info!("自启动设置为禁用");
+                    }
+                } else {
+                    let _ = autostart_manager.enable();
+                    log::warn!("无法检查自启动状态时，默认启用自启动");
+                }
             }
 
-            // 创建托盘
-            tray::create_tray(app)?;
             // 初始化预览文件
             let app_handle = app.handle().clone();
             preview::init_preview_file(app_handle);
+
+            // 创建托盘
+            tray::create_tray(app)?;
 
             Ok(())
         })

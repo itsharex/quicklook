@@ -27,7 +27,7 @@ fn main() {
     // let config = config.target_triplet("x64-windows");
     // #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
     // let config = config.target_triplet("arm64-windows");
-    
+
     // config.find_package("ffmpeg").expect("Failed to find ffmpeg");
     // config.find_package("libarchive").expect("Failed to find libarchive");
 
@@ -48,6 +48,6 @@ fn main() {
     // bindings
     //     .write_to_file(out_path.join("libarchive.rs"))
     //     .expect("Failed to write libarchive bindings");
-    
+
     tauri_build::build()
 }
